@@ -6,29 +6,43 @@ import {fetchDepartures} from './services/departures-service';
 import moment from 'moment';
 
 
-const DepartureRow = ({departure}) => {
+const Departure = ({departure}) => {
   const shortName = departure.trip.route.shortName;
+  const route = departure.trip.route.longName.split('-');
+  const headsign = departure.headsign;
+  const destination = headsign || route[route.length - 1];
   const now = moment();
   const departureTime = moment.unix(departure.serviceDay + departure.realtimeDeparture);
   return (
-    <View style={{flexDirection: 'row', margin: 1, width: '100%', justifyContent: 'space-between'}}>
-      <Text>{shortName}</Text>
-      <Text>{departureTime.diff(now, 'minutes')}</Text>
+    <View style={styles.departure}>
+      <View style={styles.departureName}>
+        <Text style={styles.departureNameText}>{shortName}</Text>
+      </View>
+      <View style={styles.departureDestination}>
+        <Text style={styles.departureDestinationText} numberOfLines={1} ellipsizeMode='tail'>
+          {destination.length > 125 ? destination.substring(0, 22) + '...' : destination}
+        </Text>
+      </View>
+      <View style={styles.departureTime}>
+        <Text style={styles.departureTimeText}>{departureTime.diff(now, 'minutes')}</Text>
+      </View>
     </View>
   )
 };
 
-const DeparturesTable = ({departures}) => {
+const DeparturesList = ({departures}) => {
   if (!departures) {
-    return <View style={styles.departuresTable}/>;
+    return <View style={styles.departuresList}/>;
   }
   const {name, stoptimesWithoutPatterns} = departures.stop;
   return (
-    <View style={styles.departuresTable}>
-      <Text>{name}</Text>
-      {stoptimesWithoutPatterns.map((d, idx) => (
-        <DepartureRow key={idx} departure={d}/>
-      ))}
+    <View style={styles.departuresList}>
+      <FlatList
+        renderItem={item => <Departure departure={item.item}/>}
+        data={stoptimesWithoutPatterns}
+        keyExtractor={(item, idx) => idx.toString()}
+        ItemSeparatorComponent={() => <View style={styles.departureSeparator} />}
+      />
     </View>
   )
 };
@@ -36,17 +50,20 @@ const DeparturesTable = ({departures}) => {
 
 const Stop = ({stopData, chooseStop, stopId}) => {
   const {distance, stop} = stopData.node;
-  const directions = stop.patterns.map(p => p.headsign);
+  const directions = stop.patterns.map(p => {
+    const route = p.route.longName.split('-');
+    return `${p.route.shortName} ${route[route.length-1]}`;
+  });
   const directionsString = [...new Set(directions)].join(', ');
   const activeStyle = stop.gtfsId === stopId
-    ? {backgroundColor: '#00DD00'}
+    ? {backgroundColor: '#EEEEEE'}
     : {};
   return (
     <TouchableHighlight onPress={() => chooseStop(stop.gtfsId)}>
       <View style={[styles.stop, activeStyle]}>
         <View style={styles.stopHeader}>
           <Text style={styles.stopHeaderText}>{stop.name}</Text>
-          <Text>{(distance/1000).toFixed(2)} km</Text>
+          <Text>{(distance/1000).toFixed(1)} km</Text>
         </View>
         <View style={styles.stopBody}>
           <Text style={styles.stopBodyText} numberOfLines={1}>{directionsString}</Text>
@@ -67,6 +84,7 @@ const StopsList = ({stops, chooseStop, stopId}) => {
         renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId}/>}
         keyExtractor={(item, idx) => idx.toString()}
         extraData={stopId}
+        ItemSeparatorComponent={() => <View style={styles.stopSeparator} />}
       />
     </View>
   )
@@ -122,7 +140,7 @@ export default class App extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <DeparturesTable departures={this.state.departures} />
+        <DeparturesList departures={this.state.departures} />
         <StopsList stops={this.state.stops} chooseStop={this.chooseStop} stopId={this.state.stopId} />
       </View>
     );
@@ -134,11 +152,47 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 30,
     backgroundColor: '#F5FCFF',
-    padding: 10,
   },
-  departuresTable: {
+  departuresList: {
     flex: 1,
     width: '100%',
+    borderBottomWidth: 4,
+    borderBottomColor: '#EEEEEE',
+  },
+  departure: {
+    flexDirection: 'row',
+    margin: 1,
+    width: '100%',
+    justifyContent: 'space-between',
+    paddingLeft: 10,
+    paddingRight: 10,
+    paddingTop: 15,
+    paddingBottom: 15,
+  },
+  departureSeparator: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#CCCCCC',
+  },
+  departureName: {
+    width: 70,
+  },
+  departureNameText: {
+    fontSize: 20,
+  },
+  departureDestination: {
+    flex: 1,
+    marginRight: 20,
+  },
+  departureDestinationText: {
+    fontSize: 16
+  },
+  departureTime: {
+    marginLeft: 'auto',
+    width: 50,
+  },
+  departureTimeText: {
+    fontSize: 20,
   },
   stopsList: {
     flex: 1,
@@ -146,8 +200,13 @@ const styles = StyleSheet.create({
   },
   stop: {
     width: '100%',
-    backgroundColor: '#EEEEEE',
+    backgroundColor: '#FFFFFF',
     padding: 10,
+  },
+  stopSeparator: {
+    height: 1,
+    width: '100%',
+    backgroundColor: '#DDDDDD',
   },
   stopHeader: {
     flexDirection: 'row',
@@ -155,11 +214,13 @@ const styles = StyleSheet.create({
   },
   stopHeaderText: {
     fontSize: 20,
+    lineHeight: 30,
+    color: '#333333',
   },
   stopBody: {
     marginRight: 80,
   },
   stopBodyText: {
-    color: '#999999',
+    color: '#555555',
   }
 });

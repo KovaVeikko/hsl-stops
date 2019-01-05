@@ -12,6 +12,11 @@ const body = (lat, lon, radius) => `
               code
               directionId
               headsign
+              route {
+                shortName
+                longName
+                mode
+              }
             }
           }
           distance

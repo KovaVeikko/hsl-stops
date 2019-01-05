@@ -4,7 +4,7 @@ const body = (stopId) => `
 {
   stop(id: "${stopId}") {
     name
-    stoptimesWithoutPatterns(numberOfDepartures: 4) {
+    stoptimesWithoutPatterns(numberOfDepartures: 8) {
       scheduledArrival
       realtimeArrival
       arrivalDelay
@@ -18,6 +18,7 @@ const body = (stopId) => `
       trip {
         route {
           shortName
+          longName
         }
       }
     }
