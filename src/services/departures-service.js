@@ -19,6 +19,7 @@ const body = (stopId) => `
         route {
           shortName
           longName
+          mode
         }
       }
     }
