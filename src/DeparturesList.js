@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EEEEEE',
   },
   departureName: {
-    width: 70,
+    width: 55,
     flexDirection: 'row',
     alignItems: 'center',
   },
