@@ -1,7 +1,9 @@
 import React from 'react';
-import {StyleSheet, Text, View, FlatList} from 'react-native';
+import {StyleSheet, Text, View, FlatList, Image} from 'react-native';
 import moment from 'moment';
 
+
+const REALTIME_ICON = require('../img/realtime.png');
 
 const Departure = ({departure}) => {
   const shortName = departure.trip.route.shortName;
@@ -22,13 +24,23 @@ const Departure = ({departure}) => {
           {destination.length > 125 ? destination.substring(0, 22) + '...' : destination}
         </Text>
       </View>
-      <View style={styles.departureTime}>
-        <Text style={styles.departureTimeText}>
-          {minutes > 20 ? departureTime.format('H:mm') : minutes}
-        </Text>
-        {day &&
-          <Text style={styles.departureDayText}>{day}</Text>
-        }
+      <View style={styles.departureTimeContainer}>
+        <View style={styles.departureRealTimeIndicator}>
+          {departure.realtime &&
+            <Image
+              style={styles.realtimeIcon}
+              source={REALTIME_ICON}
+            />
+          }
+        </View>
+        <View style={styles.departureTime}>
+          <Text style={styles.departureTimeText}>
+            {minutes > 20 ? departureTime.format('H:mm') : minutes}
+          </Text>
+          {day &&
+            <Text style={styles.departureDayText}>{day}</Text>
+          }
+        </View>
       </View>
     </View>
   )
@@ -93,9 +105,19 @@ const styles = StyleSheet.create({
   departureDestinationText: {
     fontSize: 16
   },
-  departureTime: {
+  departureTimeContainer: {
+    flexDirection: 'row',
     marginLeft: 'auto',
-    width: 55,
+    width: 65,
+  },
+  departureRealTimeIndicator: {
+    width: 10,
+  },
+  realtimeIcon: {
+    width: 10,
+    height: 10,
+  },
+  departureTime: {
     justifyContent: 'center',
   },
   departureTimeText: {
