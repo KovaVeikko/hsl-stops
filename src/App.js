@@ -1,10 +1,11 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {getPosition} from './services/locationService';
+import {getPosition} from './services/location-service';
 import {fetchStops} from './services/stops-service';
 import {fetchDepartures} from './services/departures-service';
 import DeparturesList from './DeparturesList';
 import StopsList from './StopsList';
+import {getSnapshot, saveSnapshot} from './services/local-storage-service';
 
 
 const BUS_ICON = require('../img/bus.png');
@@ -88,14 +89,22 @@ export default class App extends React.Component {
   toggleModeFilter = (mode) => {
     const modeFilters = this.state.modeFilters;
     if (modeFilters.includes(mode)) {
-      this.setState({modeFilters: modeFilters.filter(m => m !== mode)});
+      this.setState({modeFilters: modeFilters.filter(m => m !== mode)}, () => saveSnapshot(this.state));
     } else {
-      this.setState({modeFilters: [...modeFilters, mode]});
+      this.setState({modeFilters: [...modeFilters, mode]}, () => saveSnapshot(this.state));
     }
   };
 
   async componentWillMount() {
-    await this.updateAll();
+    const snapshot = await getSnapshot();
+    if (snapshot) {
+      const {modeFilters} = snapshot;
+      this.setState({modeFilters}, async () => {
+        await this.updateAll();
+      });
+    } else {
+      await this.updateAll();
+    }
     setInterval(async () => await this.updateAll(), 20 * 1000);
   }
 

@@ -95,7 +95,7 @@ const StopsList = ({stops, chooseStop, stopId, getModeIcon, toggleModeFilter, mo
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 3,
     width: '100%',
   },
   modeSelection: {

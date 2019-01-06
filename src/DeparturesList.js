@@ -48,7 +48,7 @@ const DeparturesList = ({departures}) => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 2,
     width: '100%',
     borderBottomWidth: 4,
     borderBottomColor: '#EEEEEE',
