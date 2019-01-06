@@ -8,22 +8,26 @@ import StopsList from './StopsList';
 
 
 const BUS_ICON = require('../img/bus.png');
+const BUS_ICON_DISABLED = require('../img/bus_alpha.png');
 const TRAIN_ICON = require('../img/train.png');
+const TRAIN_ICON_DISABLED = require('../img/train_alpha.png');
 const METRO_ICON = require('../img/metro.png');
+const METRO_ICON_DISABLED = require('../img/metro_alpha.png');
 const TRAM_ICON = require('../img/tram.png');
+const TRAM_ICON_DISABLED = require('../img/tram_alpha.png');
 
-const getModeIcon = (mode) => {
+const getModeIcon = (mode, disabled) => {
   switch (mode) {
     case 'RAIL':
-      return TRAIN_ICON;
+      return disabled ? TRAIN_ICON_DISABLED : TRAIN_ICON;
     case 'BUS':
-      return BUS_ICON;
+      return disabled ? BUS_ICON_DISABLED : BUS_ICON;
     case 'TRAM':
-      return TRAM_ICON;
+      return disabled ? TRAM_ICON_DISABLED : TRAM_ICON;
     case 'SUBWAY':
-      return METRO_ICON;
+      return disabled ? METRO_ICON_DISABLED : METRO_ICON;
     default:
-      return BUS_ICON;
+      return disabled ? BUS_ICON_DISABLED : BUS_ICON;
   }
 };
 
@@ -36,6 +40,7 @@ export default class App extends React.Component {
       stopId: null,
       departures: null,
       coordinates: null,
+      modeFilters: ['RAIL', 'BUS', 'TRAM', 'SUBWAY'],
     }
   };
 
@@ -80,6 +85,15 @@ export default class App extends React.Component {
     });
   };
 
+  toggleModeFilter = (mode) => {
+    const modeFilters = this.state.modeFilters;
+    if (modeFilters.includes(mode)) {
+      this.setState({modeFilters: modeFilters.filter(m => m !== mode)});
+    } else {
+      this.setState({modeFilters: [...modeFilters, mode]});
+    }
+  };
+
   async componentWillMount() {
     await this.updateAll();
     setInterval(async () => await this.updateAll(), 20 * 1000);
@@ -89,7 +103,14 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <DeparturesList departures={this.state.departures} />
-        <StopsList stops={this.state.stops} chooseStop={this.chooseStop} stopId={this.state.stopId} getModeIcon={getModeIcon} />
+        <StopsList
+          stops={this.state.stops}
+          chooseStop={this.chooseStop}
+          stopId={this.state.stopId}
+          getModeIcon={getModeIcon}
+          toggleModeFilter={this.toggleModeFilter}
+          modeFilters={this.state.modeFilters}
+        />
       </View>
     );
   }

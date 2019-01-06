@@ -8,6 +8,7 @@ const body = (lat, lon, radius) => `
           stop { 
             gtfsId 
             name
+            platformCode
             patterns {
               code
               directionId

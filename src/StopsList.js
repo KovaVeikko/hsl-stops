@@ -2,12 +2,27 @@ import {FlatList, Image, Text, TouchableHighlight, View, StyleSheet} from "react
 import React from "react";
 
 
+const ModeSelection = ({getModeIcon, toggleModeFilter, modeFilters}) => {
+  const modes = ['BUS', 'TRAM', 'RAIL', 'SUBWAY'];
+  return (
+    <View style={styles.modeSelection}>
+      {modes.map(mode => {
+        return (
+          <TouchableHighlight key={mode} onPress={() => toggleModeFilter(mode)}>
+            <Image
+              style={styles.modeSelectionIcon}
+              source={getModeIcon(mode, !modeFilters.includes(mode))}
+            />
+          </TouchableHighlight>
+        )
+      })}
+    </View>
+  )
+};
+
 const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
   const {distance, stop} = stopData.node;
-  const directions = stop.patterns.map(p => {
-    const route = p.route.longName.split('-');
-    return `${p.route.shortName} ${route[route.length-1]}`;
-  });
+  const directions = stop.patterns.map(p => p.headsign);
   const directionsString = [...new Set(directions)].join(', ');
   const modes = [...new Set(stop.patterns.map(p => p.route.mode))];
   const activeStyle = stop.gtfsId === stopId
@@ -28,6 +43,7 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
         <View style={styles.stopRightPanel}>
           <View style={styles.stopHeader}>
             <Text style={styles.stopHeaderText}>{stop.name}</Text>
+            <Text style={styles.stopPlatformText}>{stop.platformCode}</Text>
             <Text style={styles.stopDistanceText}>{(distance/1000).toFixed(1)} km</Text>
           </View>
           <View style={styles.stopBody}>
@@ -39,17 +55,38 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
   )
 };
 
-const StopsList = ({stops, chooseStop, stopId, getModeIcon}) => {
+const StopsList = ({stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilters}) => {
   if (!stops) {
     return null;
   }
+  let ids = [];
+  const uniqueStops = stops.filter(stop => {
+    const id = stop.node.stop.gtfsId;
+    if (!ids.includes(id)) {
+      ids = [...ids, id];
+      return true;
+    }
+    return false;
+  });
+  const filteredStops = uniqueStops.filter(stop => {
+    const modes = [...new Set(stop.node.stop.patterns.map(p => p.route.mode))];
+    let show = false;
+    modes.forEach(mode => {
+      if (modeFilters.includes(mode)) {
+        show = true;
+        return;
+      }
+    });
+    return show;
+  });
   return (
     <View style={styles.container}>
+      <ModeSelection getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilters={modeFilters}/>
       <FlatList
-        data={stops}
+        data={filteredStops}
         renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
         keyExtractor={(item, idx) => idx.toString()}
-        extraData={stopId}
+        extraData={[stopId, modeFilters]}
         ItemSeparatorComponent={() => <View style={styles.stopSeparator} />}
       />
     </View>
@@ -60,6 +97,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
+  },
+  modeSelection: {
+    width: '100%',
+    padding: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+  },
+  modeSelectionIcon: {
+    width: 30,
+    height: 30,
   },
   stop: {
     width: '100%',
@@ -88,11 +135,17 @@ const styles = StyleSheet.create({
   stopHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 3,
   },
   stopHeaderText: {
     fontSize: 20,
-    lineHeight: 30,
     color: '#333333',
+  },
+  stopPlatformText: {
+    fontSize: 16,
+    color: '#333333',
+    marginLeft: 5,
+    marginTop: 3,
   },
   stopDistanceText: {
     fontSize: 16,
