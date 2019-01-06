@@ -1,5 +1,6 @@
 import {FlatList, Image, Text, TouchableHighlight, View, StyleSheet} from "react-native";
 import React from "react";
+import {lightestGrey, lightGrey, white} from './colors';
 
 
 const ModeSelection = ({getModeIcon, toggleModeFilter, modeFilters}) => {
@@ -26,7 +27,7 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
   const directionsString = [...new Set(directions)].join(', ');
   const modes = [...new Set(stop.patterns.map(p => p.route.mode))];
   const activeStyle = stop.gtfsId === stopId
-    ? {backgroundColor: '#EEEEEE'}
+    ? styles.stopActive
     : {};
   return (
     <TouchableHighlight onPress={() => chooseStop(stop.gtfsId)}>
@@ -97,12 +98,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 3,
     width: '100%',
+    backgroundColor: white,
   },
   modeSelection: {
+    backgroundColor: lightestGrey,
     width: '100%',
     padding: 10,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
+    borderTopWidth: 3,
+    borderTopColor: lightGrey,
+    borderBottomWidth: 1,
+    borderBottomColor: lightGrey,
   },
   modeSelectionIcon: {
     width: 30,
@@ -110,9 +117,12 @@ const styles = StyleSheet.create({
   },
   stop: {
     width: '100%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: white,
     padding: 10,
     flexDirection: 'row',
+  },
+  stopActive: {
+    backgroundColor: lightestGrey,
   },
   stopSeparator: {
     height: 1,

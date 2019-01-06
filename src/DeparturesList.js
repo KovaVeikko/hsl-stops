@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, View, FlatList, Image} from 'react-native';
 import moment from 'moment';
+import {lightestGrey, white} from "./colors";
 
 
 const REALTIME_ICON = require('../img/realtime.png');
@@ -69,20 +70,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 2,
     width: '100%',
-    borderBottomWidth: 4,
-    borderBottomColor: '#EEEEEE',
+    backgroundColor: white,
   },
   departure: {
     flexDirection: 'row',
-    margin: 1,
     width: '100%',
     justifyContent: 'space-between',
     padding: 15,
+    backgroundColor: white,
   },
   departureSeparator: {
     height: 1,
     width: '100%',
-    backgroundColor: '#EEEEEE',
+    backgroundColor: lightestGrey,
   },
   departureName: {
     width: 55,
