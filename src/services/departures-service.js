@@ -4,7 +4,7 @@ const body = (stopId) => `
 {
   stop(id: "${stopId}") {
     name
-    stoptimesWithoutPatterns(numberOfDepartures: 8) {
+    stoptimesWithoutPatterns(numberOfDepartures: 12) {
       scheduledArrival
       realtimeArrival
       arrivalDelay

@@ -10,6 +10,8 @@ const Departure = ({departure}) => {
   const destination = headsign || route[route.length - 1];
   const now = moment();
   const departureTime = moment.unix(departure.serviceDay + departure.realtimeDeparture);
+  const minutes = departureTime.diff(now, 'minutes');
+  const day = departureTime.day() !== now.day() ? departureTime.format('dddd') : null;
   return (
     <View style={styles.departure}>
       <View style={styles.departureName}>
@@ -21,7 +23,12 @@ const Departure = ({departure}) => {
         </Text>
       </View>
       <View style={styles.departureTime}>
-        <Text style={styles.departureTimeText}>{departureTime.diff(now, 'minutes')}</Text>
+        <Text style={styles.departureTimeText}>
+          {minutes > 20 ? departureTime.format('H:mm') : minutes}
+        </Text>
+        {day &&
+          <Text style={styles.departureDayText}>{day}</Text>
+        }
       </View>
     </View>
   )
@@ -88,11 +95,14 @@ const styles = StyleSheet.create({
   },
   departureTime: {
     marginLeft: 'auto',
-    width: 50,
+    width: 55,
     justifyContent: 'center',
   },
   departureTimeText: {
     fontSize: 20,
+  },
+  departureDayText: {
+    color: '#AAAAAA',
   },
 });
 
