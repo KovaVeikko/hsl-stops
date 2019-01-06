@@ -112,6 +112,7 @@ const styles = StyleSheet.create({
   },
   departureRealTimeIndicator: {
     width: 10,
+    marginRight: 3,
   },
   realtimeIcon: {
     width: 10,
