@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View, Text} from 'react-native';
 import {getPosition} from './services/location-service';
 import {fetchStops} from './services/stops-service';
 import {fetchDepartures} from './services/departures-service';
@@ -32,29 +32,60 @@ const getModeIcon = (mode, disabled) => {
   }
 };
 
+
+const ErrorMessage = ({title, message}) => {
+  return (
+    <View style={styles.errorMessage}>
+      <Text style={styles.errorMessageTitleText}>{title}</Text>
+      <Text style={styles.errorMessageText}>{message}</Text>
+    </View>
+  )
+};
+
 export default class App extends React.Component {
 
   constructor() {
     super();
     this.state = {
+      online: null,
       stops: null,
       stopId: null,
       departures: null,
-      coordinates: null,
+      position: {
+        permission: null,
+        loading: true,
+        available: null,
+        coordinates: null,
+      },
       modeFilters: ['RAIL', 'BUS', 'TRAM', 'SUBWAY'],
     }
   };
 
   async updatePosition() {
-    const position = await getPosition();
-    this.setState({coordinates: position.coords});
+    this.setState({position: {...this.state.position, loading: true}});
+    const id = setTimeout(() => {
+      this.setState({position: {...this.state.position, available: false}});
+    }, 5000);
+    try {
+      const position = await getPosition();
+      this.setState({position: {coordinates: position.coords, loading: false, permission: true, available: true}});
+    } catch (e) {
+      if (e.code === 1) {
+        this.setState({position: {...this.state.position, permission: false, loading: false}});
+      }
+      else {
+        this.setState({position: {...this.state.position, available: false, loading: false}});
+      }
+    } finally {
+      clearTimeout(id);
+    }
   }
 
   async updateStopsList() {
-    if (!this.state.coordinates) {
+    if (!this.state.position.coordinates) {
       return;
     }
-    const {latitude, longitude} = this.state.coordinates;
+    const {latitude, longitude} = this.state.position.coordinates;
     const stops = await fetchStops({lat: latitude, lon: longitude, radius: 1500});
     let stopId = this.state.stopId;
     if (!stopId && stops.length > 0) {
@@ -95,7 +126,7 @@ export default class App extends React.Component {
     }
   };
 
-  async componentWillMount() {
+  async componentDidMount() {
     const snapshot = await getSnapshot();
     if (snapshot) {
       const {modeFilters} = snapshot;
@@ -109,6 +140,13 @@ export default class App extends React.Component {
   }
 
   render() {
+    const {permission, available, coordinates, loading} = this.state.position;
+    if (permission === false) {
+      return <ErrorMessage title="Location permission denied" message="Turn on in order to use this app."/>
+    }
+    if (available === false || (!coordinates && !loading)) {
+      return <ErrorMessage title="Location not available" />
+    }
     return (
       <View style={styles.container}>
         <DeparturesList departures={this.state.departures} />
@@ -130,5 +168,20 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 30,
     backgroundColor: '#F5FCFF',
+  },
+  errorMessage: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5FCFF',
+  },
+  errorMessageTitleText: {
+    color: '#333333',
+    fontSize: 20,
+    marginBottom: 3,
+  },
+  errorMessageText: {
+    color: '#333333',
+    fontSize: 16,
   },
 });

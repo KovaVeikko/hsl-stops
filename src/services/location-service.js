@@ -6,6 +6,5 @@ export const getPosition = () => new Promise((resolve, reject) => {
     error => {
       reject(error);
     },
-    null
   )
 });

@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
   },
   departureNameText: {
     fontSize: 20,
+    color: '#333333',
   },
   departureDestination: {
     flex: 1,
@@ -103,7 +104,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   departureDestinationText: {
-    fontSize: 16
+    fontSize: 16,
+    color: '#333333',
   },
   departureTimeContainer: {
     flexDirection: 'row',
@@ -123,6 +125,7 @@ const styles = StyleSheet.create({
   },
   departureTimeText: {
     fontSize: 20,
+    color: '#333333',
   },
   departureDayText: {
     color: '#AAAAAA',
