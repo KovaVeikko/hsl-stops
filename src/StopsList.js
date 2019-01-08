@@ -3,7 +3,7 @@ import React from "react";
 import {lightestGrey, lightGrey, white} from './colors';
 
 
-const ModeSelection = ({getModeIcon, toggleModeFilter, modeFilters}) => {
+const ModeSelection = ({getModeIcon, toggleModeFilter, chooseStop, modeFilter}) => {
   const modes = ['BUS', 'TRAM', 'RAIL', 'SUBWAY'];
   return (
     <View style={styles.modeSelection}>
@@ -12,7 +12,7 @@ const ModeSelection = ({getModeIcon, toggleModeFilter, modeFilters}) => {
           <TouchableHighlight key={mode} onPress={() => toggleModeFilter(mode)}>
             <Image
               style={styles.modeSelectionIcon}
-              source={getModeIcon(mode, !modeFilters.includes(mode))}
+              source={getModeIcon(mode, modeFilter !== mode)}
             />
           </TouchableHighlight>
         )
@@ -56,38 +56,18 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
   )
 };
 
-const StopsList = ({stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilters}) => {
+const StopsList = ({stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates}) => {
   if (!stops) {
     return null;
   }
-  let ids = [];
-  const uniqueStops = stops.filter(stop => {
-    const id = stop.node.stop.gtfsId;
-    if (!ids.includes(id)) {
-      ids = [...ids, id];
-      return true;
-    }
-    return false;
-  });
-  const filteredStops = uniqueStops.filter(stop => {
-    const modes = [...new Set(stop.node.stop.patterns.map(p => p.route.mode))];
-    let show = false;
-    modes.forEach(mode => {
-      if (modeFilters.includes(mode)) {
-        show = true;
-        return;
-      }
-    });
-    return show;
-  });
   return (
     <View style={styles.container}>
-      <ModeSelection getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilters={modeFilters}/>
+      <ModeSelection getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilter={modeFilter}/>
       <FlatList
-        data={filteredStops}
+        data={stops}
         renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
         keyExtractor={item => item.node.stop.gtfsId}
-        extraData={[stopId, modeFilters]}
+        extraData={[stopId, modeFilter, coordinates]}
         ItemSeparatorComponent={() => <View style={styles.stopSeparator} />}
       />
     </View>

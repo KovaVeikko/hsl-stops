@@ -33,6 +33,17 @@ const getModeIcon = (mode, disabled) => {
 };
 
 
+const filterStops = (stops, modeFilter) => {
+  if (stops && stops.length > 0) {
+    return modeFilter
+      ? stops.filter(stop => {
+        const modes = [...new Set(stop.node.stop.patterns.map(p => p.route.mode))];
+        return modes.includes(modeFilter);
+      })
+      : stops;
+  }
+};
+
 const ErrorMessage = ({message}) => {
   return (
     <View style={styles.errorMessage}>
@@ -61,7 +72,7 @@ export default class App extends React.Component {
         updated: false,
         coordinates: null,
       },
-      modeFilters: ['RAIL', 'BUS', 'TRAM', 'SUBWAY'],
+      modeFilter: null,
     }
   };
 
@@ -93,11 +104,16 @@ export default class App extends React.Component {
     const {latitude, longitude} = this.state.position.coordinates;
     this.setState({stops: {...this.state.stops, loading: true}});
     const stops = await fetchStops({lat: latitude, lon: longitude, radius: 1500});
-    let stopId = this.state.stopId;
-    if (!stopId && stops.length > 0) {
-      stopId = stops[0].node.stop.gtfsId;
-    }
-    this.setState({stops: {loading: false, data: stops}, stopId});
+    let ids = [];
+    const uniqueStops = stops.filter(stop => {
+      const id = stop.node.stop.gtfsId;
+      if (!ids.includes(id)) {
+        ids = [...ids, id];
+        return true;
+      }
+      return false;
+    });
+    this.setState({stops: {loading: false, data: uniqueStops}});
   }
 
   async updateDeparturesList() {
@@ -140,31 +156,31 @@ export default class App extends React.Component {
   }
 
   chooseStop = (stopId) => {
-    try {
-      this.setState({stopId, departures: {...this.state.departures, loading: true}}, async () => {
+    this.setState({stopId, departures: {...this.state.departures, loading: true}}, async () => {
+      try {
         await this.updateDeparturesList();
         this.setState({departures: {...this.state.departures, loading: false}});
-      });
-    }
-    catch (e) {
-      this.error('NETWORK', 'Network request failed', e);
-    }
+      }
+      catch (e) {
+        this.error('NETWORK', 'Network request failed', e);
+      }
+    });
   };
 
   toggleModeFilter = (mode) => {
-    const modeFilters = this.state.modeFilters;
-    if (modeFilters.includes(mode)) {
-      this.setState({modeFilters: modeFilters.filter(m => m !== mode)}, () => saveSnapshot(this.state));
+    const modeFilter = this.state.modeFilter;
+    if (modeFilter === mode) {
+      this.setState({modeFilter: null}, () => saveSnapshot(this.state));
     } else {
-      this.setState({modeFilters: [...modeFilters, mode]}, () => saveSnapshot(this.state));
+      this.setState({modeFilter: mode}, () => saveSnapshot(this.state));
     }
   };
 
   async componentDidMount() {
     const snapshot = await getSnapshot();
     if (snapshot) {
-      const {modeFilters} = snapshot;
-      this.setState({modeFilters}, async () => {
+      const {modeFilter} = snapshot;
+      this.setState({modeFilter}, async () => {
         await this.updateAll();
       });
     } else {
@@ -184,12 +200,13 @@ export default class App extends React.Component {
         <DeparturesList departures={this.state.departures.data} loading={this.state.departures.loading} />
         <StopsList
           loading={this.state.stops.loading}
-          stops={this.state.stops.data}
+          stops={filterStops(this.state.stops.data, this.state.modeFilter)}
           chooseStop={this.chooseStop}
           stopId={this.state.stopId}
           getModeIcon={getModeIcon}
           toggleModeFilter={this.toggleModeFilter}
-          modeFilters={this.state.modeFilters}
+          modeFilter={this.state.modeFilter}
+          coordinates={this.state.position.coordinates}
         />
       </View>
     );
