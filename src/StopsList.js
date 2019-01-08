@@ -86,7 +86,7 @@ const StopsList = ({stops, chooseStop, stopId, getModeIcon, toggleModeFilter, mo
       <FlatList
         data={filteredStops}
         renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
-        keyExtractor={(item, idx) => idx.toString()}
+        keyExtractor={item => item.node.stop.gtfsId}
         extraData={[stopId, modeFilters]}
         ItemSeparatorComponent={() => <View style={styles.stopSeparator} />}
       />

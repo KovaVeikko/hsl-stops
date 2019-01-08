@@ -2,6 +2,7 @@ import React from 'react';
 import {StyleSheet, Text, View, FlatList, Image} from 'react-native';
 import moment from 'moment';
 import {lightestGrey, white} from "./colors";
+import Loading from './Loading';
 
 
 const REALTIME_ICON = require('../img/realtime.png');
@@ -27,7 +28,7 @@ const Departure = ({departure}) => {
       </View>
       <View style={styles.departureTimeContainer}>
         <View style={styles.departureRealTimeIndicator}>
-          {departure.realtime &&
+          {departure.realtime && departure.realtimeState === "UPDATED" &&
             <Image
               style={styles.realtimeIcon}
               source={REALTIME_ICON}
@@ -47,7 +48,14 @@ const Departure = ({departure}) => {
   )
 };
 
-const DeparturesList = ({departures}) => {
+const DeparturesList = ({departures, loading}) => {
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Loading/>
+      </View>
+    )
+  }
   if (!departures) {
     return <View style={styles.container}/>;
   }

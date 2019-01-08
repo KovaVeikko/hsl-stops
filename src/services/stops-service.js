@@ -37,6 +37,7 @@ const options = (lat, lon, radius) => ({
 });
 
 export const fetchStops = ({lat, lon, radius}) => new Promise((resolve, reject) => {
+  const timeout = setTimeout(() => reject(new Error("TIMEOUT")), 5000);
   return fetch(url, options(lat, lon, radius))
     .then(response => {
       if (response.status !== 200) {
@@ -50,9 +51,11 @@ export const fetchStops = ({lat, lon, radius}) => new Promise((resolve, reject) 
           .catch(error => {
             reject(error)
           })
+          .finally(() => clearTimeout(timeout))
       }
     })
     .catch(error => {
       reject(error)
     })
+    .finally(() => clearTimeout(timeout))
 });

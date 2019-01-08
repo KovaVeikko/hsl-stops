@@ -33,10 +33,9 @@ const getModeIcon = (mode, disabled) => {
 };
 
 
-const ErrorMessage = ({title, message}) => {
+const ErrorMessage = ({message}) => {
   return (
     <View style={styles.errorMessage}>
-      <Text style={styles.errorMessageTitleText}>{title}</Text>
       <Text style={styles.errorMessageText}>{message}</Text>
     </View>
   )
@@ -47,38 +46,44 @@ export default class App extends React.Component {
   constructor() {
     super();
     this.state = {
-      online: null,
-      stops: null,
+      errors: {},
+      stops: {
+        loading: false,
+        data: null,
+      },
       stopId: null,
-      departures: null,
+      departures: {
+        loading: false,
+        data: null,
+      },
       position: {
-        permission: null,
         loading: true,
-        available: null,
+        updated: false,
         coordinates: null,
       },
       modeFilters: ['RAIL', 'BUS', 'TRAM', 'SUBWAY'],
     }
   };
 
+  error(type, message, error) {
+    if (!message) {
+      this.setState({errors: {...this.state.errors, [type]: null}})
+    }
+    else {
+      console.warn(type, error);
+      this.setState({errors: {...this.state.errors, [type]: message}});
+    }
+  }
+
   async updatePosition() {
     this.setState({position: {...this.state.position, loading: true}});
-    const id = setTimeout(() => {
-      this.setState({position: {...this.state.position, available: false}});
+    const timeoutId = setTimeout(() => {
+      this.setState({position: {...this.state.position, updated: false}});
+      throw new Error({message: "Failed to update location"});
     }, 5000);
-    try {
-      const position = await getPosition();
-      this.setState({position: {coordinates: position.coords, loading: false, permission: true, available: true}});
-    } catch (e) {
-      if (e.code === 1) {
-        this.setState({position: {...this.state.position, permission: false, loading: false}});
-      }
-      else {
-        this.setState({position: {...this.state.position, available: false, loading: false}});
-      }
-    } finally {
-      clearTimeout(id);
-    }
+    const position = await getPosition();
+    this.setState({position: {coordinates: position.coords, loading: false, updated: true}});
+    clearTimeout(timeoutId);
   }
 
   async updateStopsList() {
@@ -86,12 +91,13 @@ export default class App extends React.Component {
       return;
     }
     const {latitude, longitude} = this.state.position.coordinates;
+    this.setState({stops: {...this.state.stops, loading: true}});
     const stops = await fetchStops({lat: latitude, lon: longitude, radius: 1500});
     let stopId = this.state.stopId;
     if (!stopId && stops.length > 0) {
       stopId = stops[0].node.stop.gtfsId;
     }
-    this.setState({stops, stopId});
+    this.setState({stops: {loading: false, data: stops}, stopId});
   }
 
   async updateDeparturesList() {
@@ -100,21 +106,49 @@ export default class App extends React.Component {
     }
     const {stopId} = this.state;
     const departures = await fetchDepartures({stopId});
-    this.setState({departures});
+    this.setState({departures: {...this.state.departures, data: departures}});
   }
 
   async updateAll() {
-    await this.updatePosition();
-    await this.updateStopsList();
+    try {
+      await this.updatePosition();
+      this.error('LOCATION');
+    }
+    catch (e) {
+      this.error('LOCATION', 'Location request failed', e);
+      return;
+    }
+
+    try {
+      await this.updateStopsList();
+      this.error('NETWORK');
+    }
+    catch (e) {
+      this.error('NETWORK', 'Network request failed', e);
+      return;
+    }
+
     if (this.state.stopId) {
-      await this.updateDeparturesList();
+      try {
+        await this.updateDeparturesList();
+      }
+      catch (e) {
+        this.error('NETWORK', 'Network request failed', e);
+        this.error('NETWORK');
+      }
     }
   }
 
   chooseStop = (stopId) => {
-    this.setState({stopId}, async () => {
-      await this.updateDeparturesList();
-    });
+    try {
+      this.setState({stopId, departures: {...this.state.departures, loading: true}}, async () => {
+        await this.updateDeparturesList();
+        this.setState({departures: {...this.state.departures, loading: false}});
+      });
+    }
+    catch (e) {
+      this.error('NETWORK', 'Network request failed', e);
+    }
   };
 
   toggleModeFilter = (mode) => {
@@ -140,18 +174,17 @@ export default class App extends React.Component {
   }
 
   render() {
-    const {permission, available, coordinates, loading} = this.state.position;
-    if (permission === false) {
-      return <ErrorMessage title="Location permission denied" message="Turn on in order to use this app."/>
-    }
-    if (available === false || (!coordinates && !loading)) {
-      return <ErrorMessage title="Location not available" />
-    }
     return (
       <View style={styles.container}>
-        <DeparturesList departures={this.state.departures} />
+        <View style={styles.errorContainer}>
+          {Object.keys(this.state.errors).map(type => (
+            this.state.errors[type] ? <ErrorMessage key={type} message={this.state.errors[type]}/> : null
+          ))}
+        </View>
+        <DeparturesList departures={this.state.departures.data} loading={this.state.departures.loading} />
         <StopsList
-          stops={this.state.stops}
+          loading={this.state.stops.loading}
+          stops={this.state.stops.data}
           chooseStop={this.chooseStop}
           stopId={this.state.stopId}
           getModeIcon={getModeIcon}
@@ -169,16 +202,20 @@ const styles = StyleSheet.create({
     marginTop: 30,
     backgroundColor: '#F5FCFF',
   },
+  errorContainer: {
+    height: 'auto',
+    width: '100%',
+    position: 'absolute',
+    top: 0,
+    zIndex: 2,
+  },
   errorMessage: {
     flex: 1,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  errorMessageTitleText: {
-    color: '#333333',
-    fontSize: 20,
-    marginBottom: 3,
+    backgroundColor: 'yellow',
+    marginBottom: 1,
   },
   errorMessageText: {
     color: '#333333',
