@@ -161,6 +161,16 @@ export default class App extends React.Component {
     });
   };
 
+  chooseFirstStop = () => {
+    const stops = this.state.modeFilter
+      ? this.state.stops.data[this.state.modeFilter]
+      : this.state.stops.data['ALL'];
+    const stopId = stops.length > 0 ? stops[0].node.stop.gtfsId : null;
+    if (stopId) {
+      this.chooseStop(stopId);
+    }
+  };
+
   toggleModeFilter = (mode) => {
     const modeFilter = this.state.modeFilter;
     if (modeFilter === mode) {
@@ -168,6 +178,7 @@ export default class App extends React.Component {
     } else {
       this.setState({modeFilter: mode}, () => saveSnapshot(this.state));
     }
+    this.chooseFirstStop();
   };
 
   async componentDidMount() {
@@ -178,6 +189,7 @@ export default class App extends React.Component {
     this.setState({modeFilter}, async () => {
       await this.updatePosition();
       await this.updateStopsList();
+      this.chooseFirstStop();
     });
     setInterval(async () => await this.updateDeparturesList(), 15 * 1000);
   }
