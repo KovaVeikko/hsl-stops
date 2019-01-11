@@ -6,6 +6,7 @@ import {fetchDepartures} from './services/departures-service';
 import DeparturesList from './DeparturesList';
 import StopsList from './StopsList';
 import {getSnapshot, saveSnapshot} from './services/local-storage-service';
+import Header from './Header';
 
 
 const BUS_ICON = require('../img/bus.png');
@@ -44,6 +45,12 @@ const filterStops = (stops, mode) => {
         return modes.includes(mode);
       })
       : stops;
+  }
+};
+
+const getStopById = (stopId, stops) => {
+  if (stops) {
+    return stops.find(s => s.node.stop.gtfsId === stopId);
   }
 };
 
@@ -195,6 +202,8 @@ export default class App extends React.Component {
   }
 
   render() {
+    const stopsData = this.state.stops.data;
+    const chosenStop = getStopById(this.state.stopId, stopsData ? stopsData['ALL'] : null);
     return (
       <View style={styles.container}>
         <View style={styles.errorContainer}>
@@ -202,6 +211,7 @@ export default class App extends React.Component {
             this.state.errors[type] ? <ErrorMessage key={type} message={this.state.errors[type]}/> : null
           ))}
         </View>
+        <Header stop={chosenStop}/>
         <DeparturesList departures={this.state.departures.data} loading={this.state.departures.loading} />
         <StopsList
           modes={MODES}
