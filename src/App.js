@@ -197,7 +197,7 @@ export default class App extends React.Component {
   async componentDidMount() {
     // load saved state from the local storage
     const snapshot = await getSnapshot();
-    const {modeFilter} = snapshot || null;
+    const modeFilter = snapshot ? snapshot.modeFilter : null;
     // fetch position and stops list
     this.setState({modeFilter}, async () => {
       await this.updatePosition();
