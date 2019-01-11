@@ -181,11 +181,17 @@ export default class App extends React.Component {
   toggleModeFilter = (mode) => {
     const modeFilter = this.state.modeFilter;
     if (modeFilter === mode) {
-      this.setState({modeFilter: null}, () => saveSnapshot(this.state));
+      this.setState({modeFilter: null}, async () => {
+        await saveSnapshot(this.state);
+        this.chooseFirstStop();
+      });
     } else {
-      this.setState({modeFilter: mode}, () => saveSnapshot(this.state));
+      this.setState({modeFilter: mode}, async () => {
+        await saveSnapshot(this.state);
+        this.chooseFirstStop();
+      });
     }
-    this.chooseFirstStop();
+
   };
 
   async componentDidMount() {
@@ -236,7 +242,7 @@ export default class App extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 30,
+    marginTop: 20,
     backgroundColor: '#F5FCFF',
   },
   errorContainer: {
