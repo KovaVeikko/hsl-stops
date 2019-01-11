@@ -15,7 +15,7 @@ const Departure = ({departure}) => {
   const now = moment();
   const departureTime = moment.unix(departure.serviceDay + departure.realtimeDeparture);
   const minutes = departureTime.diff(now, 'minutes');
-  const day = departureTime.day() !== now.day() ? departureTime.format('dddd') : null;
+  const day = departureTime.day() !== now.day() ? departureTime.format('ddd') : null;
   return (
     <View style={styles.departure}>
       <View style={styles.departureName}>
