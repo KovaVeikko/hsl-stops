@@ -3,8 +3,7 @@ import React from "react";
 import {lightestGrey, lightGrey, white} from './colors';
 
 
-const ModeSelection = ({getModeIcon, toggleModeFilter, chooseStop, modeFilter}) => {
-  const modes = ['BUS', 'TRAM', 'RAIL', 'SUBWAY'];
+const ModeSelection = ({modes, getModeIcon, toggleModeFilter, chooseStop, modeFilter}) => {
   return (
     <View style={styles.modeSelection}>
       {modes.map(mode => {
@@ -56,15 +55,15 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
   )
 };
 
-const StopsList = ({stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates}) => {
+const StopsList = ({modes, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates}) => {
   if (!stops) {
     return null;
   }
   return (
     <View style={styles.container}>
-      <ModeSelection getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilter={modeFilter}/>
+      <ModeSelection modes={modes} getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilter={modeFilter}/>
       <FlatList
-        data={stops}
+        data={modeFilter ? stops[modeFilter] : stops['ALL']}
         renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
         keyExtractor={item => item.node.stop.gtfsId}
         extraData={[stopId, modeFilter, coordinates]}
