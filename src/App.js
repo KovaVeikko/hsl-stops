@@ -205,7 +205,7 @@ export default class App extends React.Component {
         <DeparturesList departures={this.state.departures.data} loading={this.state.departures.loading} />
         <StopsList
           modes={MODES}
-          loading={this.state.stops.loading}
+          loading={this.state.position.loading || this.state.stops.loading}
           stops={this.state.stops.data}
           chooseStop={this.chooseStop}
           stopId={this.state.stopId}
@@ -213,6 +213,10 @@ export default class App extends React.Component {
           toggleModeFilter={this.toggleModeFilter}
           modeFilter={this.state.modeFilter}
           coordinates={this.state.position.coordinates}
+          updateStops={async () => {
+            await this.updatePosition();
+            await this.updateStopsList();
+          }}
         />
       </View>
     );

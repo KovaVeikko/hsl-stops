@@ -55,7 +55,7 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
   )
 };
 
-const StopsList = ({modes, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates}) => {
+const StopsList = ({modes, loading, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates, updateStops}) => {
   if (!stops) {
     return null;
   }
@@ -63,6 +63,8 @@ const StopsList = ({modes, stops, chooseStop, stopId, getModeIcon, toggleModeFil
     <View style={styles.container}>
       <ModeSelection modes={modes} getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilter={modeFilter}/>
       <FlatList
+        onRefresh={() => updateStops()}
+        refreshing={loading}
         data={modeFilter ? stops[modeFilter] : stops['ALL']}
         renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
         keyExtractor={item => item.node.stop.gtfsId}
