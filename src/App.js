@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, Text} from 'react-native';
+import {StyleSheet, View, Text, StatusBar, Platform} from 'react-native';
 import {getPosition} from './services/location-service';
 import {fetchStops} from './services/stops-service';
 import {fetchDepartures} from './services/departures-service';
@@ -181,6 +181,8 @@ export default class App extends React.Component {
     const stopId = (stops && stops.length > 0) ? stops[0].node.stop.gtfsId : null;
     if (stopId) {
       this.chooseStop(stopId);
+    } else {
+      this.setState({stopId: null});
     }
   };
 
@@ -218,6 +220,7 @@ export default class App extends React.Component {
     const chosenStop = getStopById(this.state.stopId, stopsData ? stopsData['ALL'] : null);
     return (
       <View style={styles.container}>
+        <StatusBar backgroundColor='#455A64'/>
         <View style={styles.errorContainer}>
           {Object.keys(this.state.errors).map(type => (
             this.state.errors[type] ? <ErrorMessage key={type} message={this.state.errors[type]}/> : null
@@ -249,7 +252,7 @@ export default class App extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 20,
+    marginTop: Platform.OS === 'ios' ? 20 : 0,
     backgroundColor: '#F5FCFF',
   },
   errorContainer: {

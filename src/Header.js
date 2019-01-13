@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import {lightestGrey} from './colors';
+import {lightestGrey, white} from './colors';
 
 
 const Header = ({stop}) => {
@@ -18,7 +18,9 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: lightestGrey,
+    backgroundColor: white,
+    borderBottomWidth: 1,
+    borderBottomColor: lightestGrey,
   }
 });
 
