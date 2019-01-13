@@ -169,10 +169,13 @@ export default class App extends React.Component {
   };
 
   chooseFirstStop = () => {
+    if (!this.state.stops.data) {
+      return null;
+    }
     const stops = this.state.modeFilter
       ? this.state.stops.data[this.state.modeFilter]
       : this.state.stops.data['ALL'];
-    const stopId = stops.length > 0 ? stops[0].node.stop.gtfsId : null;
+    const stopId = (stops && stops.length > 0) ? stops[0].node.stop.gtfsId : null;
     if (stopId) {
       this.chooseStop(stopId);
     }
