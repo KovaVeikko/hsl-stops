@@ -68,6 +68,9 @@ export default class App extends React.Component {
     super();
     this.state = {
       errors: {},
+      options: {
+        radius: 1500,
+      },
       stops: {
         loading: false,
         data: null,
@@ -121,7 +124,7 @@ export default class App extends React.Component {
     const {latitude, longitude} = this.state.position.coordinates;
     this.setState({stops: {...this.state.stops, loading: true}});
     try {
-      const stops = await fetchStops({lat: latitude, lon: longitude, radius: 1500});
+      const stops = await fetchStops({lat: latitude, lon: longitude, radius: this.state.options.radius});
       let ids = [];
       const uniqueStops = stops.filter(stop => {
         const id = stop.node.stop.gtfsId;
@@ -224,6 +227,7 @@ export default class App extends React.Component {
         <DeparturesList departures={this.state.departures.data} loading={this.state.departures.loading} />
         <StopsList
           modes={MODES}
+          radius={this.state.options.radius}
           loading={this.state.position.loading || this.state.stops.loading}
           stops={this.state.stops.data}
           chooseStop={this.chooseStop}

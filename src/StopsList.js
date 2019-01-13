@@ -55,9 +55,17 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
   )
 };
 
-const StopsList = ({modes, loading, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates, updateStops}) => {
+const StopsList = ({modes, radius, loading, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates, updateStops}) => {
   if (!stops) {
     return null;
+  }
+  const data = modeFilter ? stops[modeFilter] : stops['ALL'];
+  if (!data) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.emptyListText}>No stops within {(radius / 1000).toFixed(1)} km</Text>
+      </View>
+    );
   }
   return (
     <View style={styles.container}>
@@ -65,7 +73,7 @@ const StopsList = ({modes, loading, stops, chooseStop, stopId, getModeIcon, togg
       <FlatList
         onRefresh={() => updateStops()}
         refreshing={loading}
-        data={modeFilter ? stops[modeFilter] : stops['ALL']}
+        data={data}
         renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
         keyExtractor={item => item.node.stop.gtfsId}
         extraData={[stopId, modeFilter, coordinates]}
@@ -80,6 +88,9 @@ const styles = StyleSheet.create({
     flex: 3,
     width: '100%',
     backgroundColor: white,
+  },
+  emptyListText: {
+    alignSelf: 'center',
   },
   modeSelection: {
     backgroundColor: lightestGrey,
