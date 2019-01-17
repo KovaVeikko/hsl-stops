@@ -71,7 +71,7 @@ export default class App extends React.Component {
     super();
     this.state = {
       locationPermissionDenied: null,
-      errors: {},
+      loaded: false,
       options: {
         radius: 1500,
       },
@@ -86,39 +86,27 @@ export default class App extends React.Component {
       },
       position: {
         loading: true,
-        updated: false,
-        coordinates: null,
+        failed: null,
+        coordinates: {
+          latitude: 60.171873,
+          longitude: 24.941422,
+        },
       },
+      networkFailed: null,
       modeFilter: null,
-      loaded: false,
     }
   };
 
-  error(type, message, error) {
-    if (!message) {
-      this.setState({errors: {...this.state.errors, [type]: null}})
-    }
-    else {
-      console.warn(type, error);
-      this.setState({errors: {...this.state.errors, [type]: message}});
-    }
-  }
-
   async updatePosition() {
     this.setState({position: {...this.state.position, loading: true}});
-    const timeoutId = setTimeout(() => {
-      this.setState({position: {...this.state.position, updated: false}});
-      this.error('LOCATION', 'Location request failed');
-    }, 5000);
     try {
       const position = await getPosition();
-      this.setState({position: {coordinates: position.coords, loading: false, updated: true}});
+      this.setState({position: {coordinates: position.coords, loading: false, failed: false}}, async () => {
+        await saveSnapshot(this.state);
+      });
     }
     catch (e) {
-      this.error('LOCATION', 'Location request failed', e);
-    }
-    finally {
-      clearTimeout(timeoutId);
+      this.setState({position: {...this.state.position, loading: false, failed: true}});
     }
   }
 
@@ -143,10 +131,10 @@ export default class App extends React.Component {
       MODES.map(mode => {
         stopData[mode] = filterStops(uniqueStops, mode);
       });
-      this.setState({stops: {loading: false, data: stopData}});
+      this.setState({networkFailed: false, stops: {loading: false, data: stopData}});
     }
     catch (e) {
-      this.error('NETWORK', 'Network request failed', e);
+      this.setState({networkFailed: true});
     }
   }
 
@@ -157,10 +145,10 @@ export default class App extends React.Component {
     const {stopId} = this.state;
     try {
       const departures = await fetchDepartures({stopId});
-      this.setState({departures: {...this.state.departures, data: departures}});
+      this.setState({networkFailed: false, departures: {...this.state.departures, data: departures}});
     }
     catch (e) {
-      this.error('NETWORK', 'Network request failed', e);
+      this.setState({networkFailed: true});
     }
   }
 
@@ -168,10 +156,10 @@ export default class App extends React.Component {
     this.setState({stopId, departures: {...this.state.departures, loading: true}}, async () => {
       try {
         await this.updateDeparturesList();
-        this.setState({departures: {...this.state.departures, loading: false}});
+        this.setState({networkFailed: false, departures: {...this.state.departures, loading: false}});
       }
       catch (e) {
-        this.error('NETWORK', 'Network request failed', e);
+        this.setState({networkFailed: true});
       }
     });
   };
@@ -229,17 +217,26 @@ export default class App extends React.Component {
     // load saved state from the local storage
     const snapshot = await getSnapshot();
     const modeFilter = snapshot ? snapshot.modeFilter : null;
+    const coordinates = snapshot ? snapshot.position.coordinates : this.state.position.coordinates;
 
     // fetch position and stops list
-    await this.setState({modeFilter}, async () => {
+    await this.setState({modeFilter, position: {...this.state.position, coordinates}}, async () => {
       await this.updatePosition();
       await this.updateStopsList();
       this.chooseFirstStop();
       this.setState({loaded: true});
     });
 
-    // set interval for updating departures
-    setInterval(async () => await this.updateDeparturesList(), 15 * 1000);
+    // set interval for updating data
+    setInterval(async () => {
+      if (this.state.position.failed) {
+        await this.updatePosition();
+      }
+      if (!this.state.stops.data) {
+        await this.updateStopsList();
+      }
+      await this.updateDeparturesList();
+    }, 15 * 1000);
   }
 
   async componentDidMount() {
@@ -252,7 +249,6 @@ export default class App extends React.Component {
 
     // startup
     await this.startup();
-
   }
 
   render() {
@@ -261,11 +257,11 @@ export default class App extends React.Component {
       locationPermissionDenied,
       stops,
       stopId,
-      errors,
       departures,
       options,
       modeFilter,
       position,
+      networkFailed,
     } = this.state;
     if (!loaded) {
       return <Loading/>
@@ -280,17 +276,21 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <StatusBar backgroundColor='#455A64'/>
-        <View style={styles.errorContainer}>
-          {Object.keys(errors).map(type => (
-            errors[type] ? <ErrorMessage key={type} message={errors[type]}/> : null
-          ))}
-        </View>
+
+        {position.failed &&
+          <ErrorMessage message="Failed to update location"/>
+        }
+
+        {networkFailed &&
+          <ErrorMessage message="Failed to update data"/>
+        }
+
         <Header stop={chosenStop}/>
         <DeparturesList departures={departures.data} loading={departures.loading} />
         <StopsList
           modes={MODES}
           radius={options.radius}
-          loading={position.loading || stops.loading}
+          loading={stops.loading}
           stops={stops.data}
           chooseStop={this.chooseStop}
           stopId={stopId}
@@ -317,20 +317,20 @@ const styles = StyleSheet.create({
   errorContainer: {
     height: 'auto',
     width: '100%',
-    position: 'absolute',
-    top: 0,
     zIndex: 2,
   },
   errorMessage: {
-    flex: 1,
+    flexDirection: 'row',
+    padding: 10,
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'yellow',
+    backgroundColor: '#DDDDDD',
     marginBottom: 1,
   },
   errorMessageText: {
     color: '#333333',
     fontSize: 16,
+    marginRight: 10,
   },
 });

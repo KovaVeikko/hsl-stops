@@ -5,8 +5,9 @@ import {lightestGrey, white} from './colors';
 
 const Header = ({stop}) => {
   const stopName = stop ? stop.node.stop.name : '';
+  const noStopStyle = stop ? {} : {borderBottomWidth: 0};
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, noStopStyle]}>
       <Text>{stopName}</Text>
     </View>
   );
