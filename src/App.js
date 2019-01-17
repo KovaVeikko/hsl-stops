@@ -188,7 +188,7 @@ export default class App extends React.Component {
         this.chooseFirstStop();
       });
     } else {
-      this.setState({modeFilter: mode}, async () => {
+      this.setState({modeFilter: mode, stops: {...this.state.stops, show: 20}}, async () => {
         await saveSnapshot(this.state);
         this.chooseFirstStop();
       });

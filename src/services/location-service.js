@@ -6,6 +6,6 @@ export const getPosition = () => new Promise((resolve, reject) => {
     error => {
       reject(error);
     },
-    { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 10000 }
   )
 });
