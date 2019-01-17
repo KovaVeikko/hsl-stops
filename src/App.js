@@ -78,6 +78,7 @@ export default class App extends React.Component {
       stops: {
         loading: false,
         data: null,
+        show: 20,
       },
       stopId: null,
       departures: {
@@ -131,7 +132,7 @@ export default class App extends React.Component {
       MODES.map(mode => {
         stopData[mode] = filterStops(uniqueStops, mode);
       });
-      this.setState({networkFailed: false, stops: {loading: false, data: stopData}});
+      this.setState({networkFailed: false, stops: {...this.state.stops, loading: false, data: stopData}});
     }
     catch (e) {
       this.setState({networkFailed: true});
@@ -191,6 +192,16 @@ export default class App extends React.Component {
         await saveSnapshot(this.state);
         this.chooseFirstStop();
       });
+    }
+  };
+
+  showMoreStops = () => {
+    const stops = this.state.stops;
+    const stopsList = this.state.modeFilter
+      ? stops.data[this.state.modeFilter]
+      : stops.data['ALL'];
+    if (stopsList && stops.show < stopsList.length) {
+      this.setState({stops: {...stops, show: stops.show + 20}});
     }
   };
 
@@ -302,6 +313,8 @@ export default class App extends React.Component {
             await this.updatePosition();
             await this.updateStopsList();
           }}
+          show={stops.show}
+          showMore={this.showMoreStops}
         />
       </View>
     );
