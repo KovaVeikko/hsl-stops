@@ -1,5 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, Text, StatusBar, Platform} from 'react-native';
+import Permissions from 'react-native-permissions';
 import {getPosition} from './services/location-service';
 import {fetchStops} from './services/stops-service';
 import {fetchDepartures} from './services/departures-service';
@@ -7,6 +8,8 @@ import DeparturesList from './DeparturesList';
 import StopsList from './StopsList';
 import {getSnapshot, saveSnapshot} from './services/local-storage-service';
 import Header from './Header';
+import Loading from './Loading';
+import LocationDeniedMessage from './LocationDeniedMessage';
 
 
 const BUS_ICON = require('../img/bus.png');
@@ -67,6 +70,7 @@ export default class App extends React.Component {
   constructor() {
     super();
     this.state = {
+      locationPermissionDenied: null,
       errors: {},
       options: {
         radius: 1500,
@@ -86,6 +90,7 @@ export default class App extends React.Component {
         coordinates: null,
       },
       modeFilter: null,
+      loaded: false,
     }
   };
 
@@ -199,46 +204,100 @@ export default class App extends React.Component {
         this.chooseFirstStop();
       });
     }
-
   };
 
-  async componentDidMount() {
+  async hasLocationPermission() {
+    // Response is one of: 'authorized', 'denied', 'restricted', or 'undetermined'
+    const permission = await Permissions.check('location');
+    return ['authorized'].includes(permission);
+  }
+
+  async requestLocationPermission() {
+    const permission = await Permissions.request('location');
+    return ['authorized'].includes(permission);
+  }
+
+  async getLocationPermission() {
+    const locationPermission = await this.hasLocationPermission();
+    if (!locationPermission) {
+      return await this.requestLocationPermission();
+    }
+    return true;
+  }
+
+  async startup() {
     // load saved state from the local storage
     const snapshot = await getSnapshot();
     const modeFilter = snapshot ? snapshot.modeFilter : null;
+
     // fetch position and stops list
-    this.setState({modeFilter}, async () => {
+    await this.setState({modeFilter}, async () => {
       await this.updatePosition();
       await this.updateStopsList();
       this.chooseFirstStop();
+      this.setState({loaded: true});
     });
+
+    // set interval for updating departures
     setInterval(async () => await this.updateDeparturesList(), 15 * 1000);
   }
 
+  async componentDidMount() {
+    // check permissions
+    const locationPermission = await this.getLocationPermission();
+    if (!locationPermission) {
+      this.setState({locationPermissionDenied: true, loaded: true});
+      return;
+    }
+
+    // startup
+    await this.startup();
+
+  }
+
   render() {
-    const stopsData = this.state.stops.data;
-    const chosenStop = getStopById(this.state.stopId, stopsData ? stopsData['ALL'] : null);
+    const {
+      loaded,
+      locationPermissionDenied,
+      stops,
+      stopId,
+      errors,
+      departures,
+      options,
+      modeFilter,
+      position,
+    } = this.state;
+    if (!loaded) {
+      return <Loading/>
+    }
+
+    if (locationPermissionDenied) {
+      return <LocationDeniedMessage/>;
+    }
+
+    const stopsData = stops.data;
+    const chosenStop = getStopById(stopId, stopsData ? stopsData['ALL'] : null);
     return (
       <View style={styles.container}>
         <StatusBar backgroundColor='#455A64'/>
         <View style={styles.errorContainer}>
-          {Object.keys(this.state.errors).map(type => (
-            this.state.errors[type] ? <ErrorMessage key={type} message={this.state.errors[type]}/> : null
+          {Object.keys(errors).map(type => (
+            errors[type] ? <ErrorMessage key={type} message={errors[type]}/> : null
           ))}
         </View>
         <Header stop={chosenStop}/>
-        <DeparturesList departures={this.state.departures.data} loading={this.state.departures.loading} />
+        <DeparturesList departures={departures.data} loading={departures.loading} />
         <StopsList
           modes={MODES}
-          radius={this.state.options.radius}
-          loading={this.state.position.loading || this.state.stops.loading}
-          stops={this.state.stops.data}
+          radius={options.radius}
+          loading={position.loading || stops.loading}
+          stops={stops.data}
           chooseStop={this.chooseStop}
-          stopId={this.state.stopId}
+          stopId={stopId}
           getModeIcon={getModeIcon}
           toggleModeFilter={this.toggleModeFilter}
-          modeFilter={this.state.modeFilter}
-          coordinates={this.state.position.coordinates}
+          modeFilter={modeFilter}
+          coordinates={position.coordinates}
           updateStops={async () => {
             await this.updatePosition();
             await this.updateStopsList();
