@@ -73,7 +73,7 @@ export default class App extends React.Component {
       locationPermissionDenied: null,
       loaded: false,
       options: {
-        radius: 1500,
+        radius: 3000,
       },
       stops: {
         loading: false,
