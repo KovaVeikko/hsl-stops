@@ -79,6 +79,7 @@ const StopsList = ({modes, radius, loading, stops, chooseStop, stopId, getModeIc
         extraData={[stopId, modeFilter, coordinates]}
         ItemSeparatorComponent={() => <View style={styles.stopSeparator} />}
         onEndReached={showMore}
+        onEndReachedThreshold={0.1}
       />
     </View>
   )
