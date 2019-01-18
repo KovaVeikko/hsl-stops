@@ -60,27 +60,25 @@ const StopsList = ({modes, radius, loading, stops, chooseStop, stopId, getModeIc
     return null;
   }
   const data = modeFilter ? stops[modeFilter] : stops['ALL'];
-  if (!data) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.emptyListText}>No stops within {(radius / 1000).toFixed(1)} km</Text>
-      </View>
-    );
-  }
   return (
     <View style={styles.container}>
       <ModeSelection modes={modes} getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilter={modeFilter}/>
-      <FlatList
-        onRefresh={() => updateStops()}
-        refreshing={loading}
-        data={data.slice(0, show)}
-        renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
-        keyExtractor={item => item.node.stop.gtfsId}
-        extraData={[stopId, modeFilter, coordinates]}
-        ItemSeparatorComponent={() => <View style={styles.stopSeparator} />}
-        onEndReached={showMore}
-        onEndReachedThreshold={0.1}
-      />
+      {data
+        ? <FlatList
+            onRefresh={() => updateStops()}
+            refreshing={loading}
+            data={data.slice(0, show)}
+            renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
+            keyExtractor={item => item.node.stop.gtfsId}
+            extraData={[stopId, modeFilter, coordinates]}
+            ItemSeparatorComponent={() => <View style={styles.stopSeparator} />}
+            onEndReached={showMore}
+            onEndReachedThreshold={0.1}
+          />
+        : <View style={styles.container}>
+            <Text style={styles.emptyListText}>No stops within {(radius / 1000).toFixed(1)} km range</Text>
+          </View>
+      }
     </View>
   )
 };
@@ -93,6 +91,8 @@ const styles = StyleSheet.create({
   },
   emptyListText: {
     alignSelf: 'center',
+    marginTop: 'auto',
+    marginBottom: 'auto',
   },
   modeSelection: {
     backgroundColor: white,
