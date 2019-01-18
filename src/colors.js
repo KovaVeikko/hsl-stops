@@ -5,3 +5,4 @@ export const lightGrey = '#DDDDDD';
 export const lighterGrey = '#e4e4ee';
 export const lightestGrey = '#f5f5f5';
 
+export const yellow = '#FFC107';

@@ -1,7 +1,8 @@
 import {FlatList, Image, Text, TouchableHighlight, View, StyleSheet} from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import {lightestGrey, lightGrey, white} from './colors';
+import {lightestGrey, lightGrey, white, yellow} from './colors';
+import Stop from './Stop';
 
 
 const ModeSelection = ({modes, getModeIcon, toggleModeFilter, chooseStop, modeFilter}) => {
@@ -21,48 +22,10 @@ const ModeSelection = ({modes, getModeIcon, toggleModeFilter, chooseStop, modeFi
         <Icon
           name="star-o"
           size={35}
-          color={modeFilter === "FAVORITES" ? "#333333" : lightGrey}
+          color={modeFilter === "FAVORITES" ? yellow : lightGrey}
         />
       </TouchableHighlight>
     </View>
-  )
-};
-
-const Stop = ({stopData, chooseStop, stopId, getModeIcon, toggleFavorite, favoriteStopIds}) => {
-  const {distance, stop} = stopData.node;
-  const directions = stop.patterns.map(p => p.headsign);
-  const directionsString = [...new Set(directions)].join(', ');
-  const modes = [...new Set(stop.patterns.map(p => p.route.mode))];
-  const activeStyle = stop.gtfsId === stopId
-    ? styles.stopActive
-    : {};
-  return (
-    <TouchableHighlight onPress={() => chooseStop(stop.gtfsId)}>
-      <View style={[styles.stop, activeStyle]}>
-        <View style={styles.stopLeftPanel}>
-          {modes.map((mode, idx) => (
-            <Image
-              key={idx}
-              style={styles.stopIcon}
-              source={getModeIcon(mode)}
-            />
-          ))}
-        </View>
-        <View style={styles.stopRightPanel}>
-          <View style={styles.stopHeader}>
-            <Text style={styles.stopHeaderText}>{stop.name}</Text>
-            <Text style={styles.stopPlatformText}>{stop.platformCode}</Text>
-            <Text style={styles.stopDistanceText}>{(distance/1000).toFixed(1)} km</Text>
-          </View>
-          <View style={styles.stopBody}>
-            <Text style={styles.stopBodyText} numberOfLines={1}>{directionsString}</Text>
-            <TouchableHighlight style={styles.favoriteButton} onPress={() => toggleFavorite(stop.gtfsId)}>
-              <Icon name={favoriteStopIds && favoriteStopIds.includes(stop.gtfsId) ? "star" : "star-o"} size={16} color="#333333" />
-            </TouchableHighlight>
-          </View>
-        </View>
-      </View>
-    </TouchableHighlight>
   )
 };
 
@@ -168,50 +131,6 @@ const styles = StyleSheet.create({
     height: 1,
     width: '100%',
     backgroundColor: '#DDDDDD',
-  },
-  stopLeftPanel: {
-    width: 25,
-    justifyContent: 'center',
-  },
-  stopRightPanel: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  stopIcon: {
-    width: 15,
-    height: 15,
-    marginRight: 10,
-  },
-  stopHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 3,
-  },
-  stopHeaderText: {
-    fontSize: 20,
-    color: '#333333',
-  },
-  stopPlatformText: {
-    fontSize: 16,
-    color: '#333333',
-    marginLeft: 5,
-    marginTop: 3,
-  },
-  stopDistanceText: {
-    fontSize: 16,
-    color: '#333333',
-    marginLeft: 'auto',
-  },
-  stopBody: {
-    flexDirection: 'row',
-  },
-  stopBodyText: {
-    color: '#555555',
-    marginRight: 80,
-  },
-  favoriteButton: {
-    marginLeft: 'auto',
-    marginRight: 20,
   },
 });
 
