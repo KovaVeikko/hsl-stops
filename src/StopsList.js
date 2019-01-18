@@ -63,7 +63,7 @@ const StopsList = ({modes, radius, loading, stops, chooseStop, stopId, getModeIc
   return (
     <View style={styles.container}>
       <ModeSelection modes={modes} getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilter={modeFilter}/>
-      {data
+      {data && data.length > 0
         ? <FlatList
             onRefresh={() => updateStops()}
             refreshing={loading}

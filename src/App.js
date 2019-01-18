@@ -113,13 +113,25 @@ export default class App extends React.Component {
   async updatePosition() {
     this.setState({position: {...this.state.position, loading: true}});
     try {
-      const position = await getPosition();
+      const position = await getPosition({highAccuracy: true});
       this.setState({position: {coordinates: position.coords, loading: false, failed: false}}, async () => {
         await saveSnapshot(this.state);
       });
     }
     catch (e) {
-      this.setState({position: {...this.state.position, loading: false, failed: true}});
+      if (e.code === 3) { // if timed out, try again without high accuracy
+        try {
+          const position = await getPosition({highAccuracy: false});
+          this.setState({position: {coordinates: position.coords, loading: false, failed: false}}, async () => {
+            await saveSnapshot(this.state);
+          });
+        }
+        catch {
+          this.setState({position: {...this.state.position, loading: false, failed: true}});
+        }
+      } else {
+        this.setState({position: {...this.state.position, loading: false, failed: true}});
+      }
     }
   }
 

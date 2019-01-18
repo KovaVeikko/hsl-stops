@@ -1,4 +1,4 @@
-export const getPosition = () => new Promise((resolve, reject) => {
+export const getPosition = ({highAccuracy = true}) => new Promise((resolve, reject) => {
   return navigator.geolocation.getCurrentPosition(
     position => {
       resolve(position);
@@ -6,6 +6,6 @@ export const getPosition = () => new Promise((resolve, reject) => {
     error => {
       reject(error);
     },
-    { enableHighAccuracy: false, timeout: 10000, maximumAge: 10000 }
+    { enableHighAccuracy: highAccuracy, timeout: 10000, maximumAge: 10000 }
   )
 });
