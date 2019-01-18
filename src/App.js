@@ -10,7 +10,6 @@ import {getSnapshot, saveSnapshot} from './services/local-storage-service';
 import Header from './Header';
 import Loading from './Loading';
 import LocationDeniedMessage from './LocationDeniedMessage';
-import Navbar from './Navbar';
 
 
 const BUS_ICON = require('../img/bus.png');
@@ -50,15 +49,6 @@ const filterStops = (stops, mode) => {
       })
       : stops;
   }
-};
-
-const findFavoriteStops = (stopData, favoriteIds) => {
-  //return stopData;
-  const favoriteStops = {'ALL': favoriteIds && stopData && stopData['ALL'] ? stopData['ALL'].filter(s => favoriteIds.includes(s.node.stop.gtfsId)) : []};
-  MODES.map(mode => {
-    favoriteStops[mode] = favoriteIds && stopData && stopData[mode] ? stopData[mode].filter(s => favoriteIds.includes(s.node.stop.gtfsId)) : [];
-  });
-  return favoriteStops;
 };
 
 const getStopById = (stopId, stops) => {
@@ -107,7 +97,6 @@ export default class App extends React.Component {
       },
       networkFailed: null,
       modeFilter: null,
-      selectedView: 'near',
       favoriteStopIds: [],
     }
   };
@@ -164,7 +153,10 @@ export default class App extends React.Component {
         }
         return false;
       });
-      const stopData = {'ALL': uniqueStops};
+      const stopData = {
+        'ALL': uniqueStops,
+        'FAVORITES': uniqueStops.filter(s => this.state.favoriteStopIds.includes(s.node.stop.gtfsId)),
+      };
       MODES.map(mode => {
         stopData[mode] = filterStops(uniqueStops, mode);
       });
@@ -262,29 +254,23 @@ export default class App extends React.Component {
     return true;
   }
 
-  changeView = (view) => {
-    if (view === 'favorites') {
-      this.setState({selectedView: 'favorites'}, async () => {
-        await saveSnapshot(this.state);
-      });
-    } else {
-      this.setState({selectedView: 'near'}, async () => {
-        await saveSnapshot(this.state);
-      });
-    }
-  };
-
   toggleFavorite = (stopId) => {
-    const {favoriteStopIds} = this.state;
+    const {favoriteStopIds, stops} = this.state;
+    const nextStopData = stops.data;
+    let nextFavoriteIds;
     if (favoriteStopIds.includes(stopId)) {
-      this.setState({favoriteStopIds: favoriteStopIds.filter(f => f !== stopId)}, async () => {
+      nextFavoriteIds = favoriteStopIds.filter(f => f !== stopId);
+      this.setState({favoriteStopIds: nextFavoriteIds}, async () => {
         await saveSnapshot(this.state);
       });
     } else {
-      this.setState({favoriteStopIds: [...favoriteStopIds, stopId]}, async () => {
+      nextFavoriteIds = [...favoriteStopIds, stopId];
+      this.setState({favoriteStopIds: nextFavoriteIds}, async () => {
         await saveSnapshot(this.state);
       });
     }
+    nextStopData['FAVORITES'] = nextStopData['ALL'].filter(s => nextFavoriteIds.includes(s.node.stop.gtfsId));
+    this.setState({stops: {...stops, data: nextStopData}});
   };
 
   async startup() {
@@ -352,11 +338,9 @@ export default class App extends React.Component {
       stops,
       stopId,
       departures,
-      options,
       modeFilter,
       position,
       networkFailed,
-      selectedView,
       favoriteStopIds,
     } = this.state;
     if (!loaded) {
@@ -369,7 +353,6 @@ export default class App extends React.Component {
 
     const stopsData = stops.data;
     const chosenStop = getStopById(stopId, stopsData ? stopsData['ALL'] : null);
-    const favoriteStops = findFavoriteStops(stopsData, favoriteStopIds); // TODO: find favorite stops
     return (
       <View style={styles.container}>
         <StatusBar backgroundColor='#455A64'/>
@@ -390,15 +373,13 @@ export default class App extends React.Component {
         />
         <StopsList
           modes={MODES}
-          radius={options.radius}
           loading={stops.loading}
-          stops={selectedView === 'near' ? stops.data : favoriteStops}
+          stops={stops.data}
           chooseStop={this.chooseStop}
           stopId={stopId}
           getModeIcon={getModeIcon}
           toggleModeFilter={this.toggleModeFilter}
           modeFilter={modeFilter}
-          coordinates={position.coordinates}
           updateStops={async () => {
             await this.updatePosition();
             await this.updateStopsList();
@@ -408,7 +389,6 @@ export default class App extends React.Component {
           toggleFavorite={this.toggleFavorite}
           favoriteStopIds={favoriteStopIds}
         />
-        <Navbar selectedView={selectedView} changeView={this.changeView}/>
       </View>
     );
   }

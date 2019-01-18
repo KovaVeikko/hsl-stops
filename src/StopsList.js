@@ -17,6 +17,13 @@ const ModeSelection = ({modes, getModeIcon, toggleModeFilter, chooseStop, modeFi
           </TouchableHighlight>
         )
       })}
+      <TouchableHighlight onPress={() => toggleModeFilter('FAVORITES')}>
+        <Icon
+          name="star-o"
+          size={35}
+          color={modeFilter === "FAVORITES" ? "#333333" : lightGrey}
+        />
+      </TouchableHighlight>
     </View>
   )
 };
@@ -77,7 +84,21 @@ class StopsList extends React.Component {
   }
 
   render() {
-    const {modes, radius, loading, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates, updateStops, show, showMore, toggleFavorite, favoriteStopIds} = this.props;
+    const {
+      modes,
+      loading,
+      stops,
+      chooseStop,
+      stopId,
+      getModeIcon,
+      toggleModeFilter,
+      modeFilter,
+      updateStops,
+      show,
+      showMore,
+      toggleFavorite,
+      favoriteStopIds
+    } = this.props;
     if (!stops) {
       return null;
     }
@@ -93,7 +114,7 @@ class StopsList extends React.Component {
             data={data.slice(0, show)}
             renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon} toggleFavorite={toggleFavorite} favoriteStopIds={favoriteStopIds}/>}
             keyExtractor={item => item.node.stop.gtfsId}
-            extraData={[stopId, modeFilter, coordinates]}
+            extraData={favoriteStopIds.length}
             ItemSeparatorComponent={() => <View style={styles.stopSeparator} />}
             onEndReached={showMore}
             onEndReachedThreshold={0.1}
