@@ -212,13 +212,13 @@ export default class App extends React.Component {
     }
   };
 
-  static async hasLocationPermission() {
+  async hasLocationPermission() {
     // Response is one of: 'authorized', 'denied', 'restricted', or 'undetermined'
     const permission = await Permissions.check('location');
     return ['authorized'].includes(permission);
   }
 
-  static async requestLocationPermission() {
+  async requestLocationPermission() {
     const permission = await Permissions.request('location');
     return ['authorized'].includes(permission);
   }
