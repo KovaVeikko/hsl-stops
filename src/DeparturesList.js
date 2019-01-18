@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     width: 55,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   departureIcon: {
     width: 15,
