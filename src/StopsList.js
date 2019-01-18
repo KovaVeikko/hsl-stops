@@ -55,18 +55,37 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
   )
 };
 
-const StopsList = ({modes, radius, loading, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates, updateStops, show, showMore}) => {
-  if (!stops) {
-    return null;
+class StopsList extends React.Component {
+  constructor(props) {
+    super(props);
   }
-  const data = modeFilter ? stops[modeFilter] : stops['ALL'];
-  return (
-    <View style={styles.container}>
-      <ModeSelection modes={modes} getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilter={modeFilter}/>
-      {data && data.length > 0
-        ? <FlatList
-            onRefresh={() => updateStops()}
-            refreshing={loading}
+
+  scrollUp = () => {
+    if (this.listElem && this.listElem.scrollToOffset) {
+      this.listElem.scrollToOffset({x: 0, y: 0, animated: false});
+    }
+  };
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.modeFilter !== nextProps.modeFilter) {
+      this.scrollUp();
+    }
+  }
+
+  render() {
+    const {modes, radius, loading, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates, updateStops, show, showMore} = this.props;
+    if (!stops) {
+      return null;
+    }
+    const data = modeFilter ? stops[modeFilter] : stops['ALL'];
+    return (
+      <View style={styles.container}>
+        <ModeSelection modes={modes} getModeIcon={getModeIcon} toggleModeFilter={toggleModeFilter} modeFilter={modeFilter}/>
+        {data && data.length > 0
+          ? <FlatList
+            ref={node => this.listElem = node}
+            //onRefresh={() => updateStops()}
+            //refreshing={loading}
             data={data.slice(0, show)}
             renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
             keyExtractor={item => item.node.stop.gtfsId}
@@ -75,13 +94,14 @@ const StopsList = ({modes, radius, loading, stops, chooseStop, stopId, getModeIc
             onEndReached={showMore}
             onEndReachedThreshold={0.1}
           />
-        : <View style={styles.container}>
+          : <View style={styles.container}>
             <Text style={styles.emptyListText}>No stops within {(radius / 1000).toFixed(1)} km range</Text>
           </View>
-      }
-    </View>
-  )
-};
+        }
+      </View>
+    )
+  }
+}
 
 const styles = StyleSheet.create({
   container: {
