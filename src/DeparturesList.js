@@ -48,30 +48,50 @@ const Departure = ({departure}) => {
   )
 };
 
-const DeparturesList = ({departures, loading}) => {
-  if (loading) {
+class DeparturesList extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  scrollUp = () => {
+    if (this.listElem && this.listElem.scrollToOffset) {
+      this.listElem.scrollToOffset({x: 0, y: 0, animated: true});
+    }
+  };
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.stopId !== nextProps.stopId) {
+      this.scrollUp();
+    }
+  }
+
+  render() {
+    const {departures, loading} = this.props;
+    if (loading) {
+      return (
+        <View style={styles.container}>
+          <Loading/>
+        </View>
+      )
+    }
+    if (!departures) {
+      return <View style={styles.container}/>;
+    }
+    const {stoptimesWithoutPatterns} = departures.stop;
     return (
       <View style={styles.container}>
-        <Loading/>
+        <FlatList
+          ref={node => this.listElem = node}
+          renderItem={item => <Departure departure={item.item}/>}
+          data={stoptimesWithoutPatterns}
+          keyExtractor={(item, idx) => idx.toString()}
+          ItemSeparatorComponent={() => <View style={styles.departureSeparator} />}
+          extraData={departures}
+        />
       </View>
     )
   }
-  if (!departures) {
-    return <View style={styles.container}/>;
-  }
-  const {stoptimesWithoutPatterns} = departures.stop;
-  return (
-    <View style={styles.container}>
-      <FlatList
-        renderItem={item => <Departure departure={item.item}/>}
-        data={stoptimesWithoutPatterns}
-        keyExtractor={(item, idx) => idx.toString()}
-        ItemSeparatorComponent={() => <View style={styles.departureSeparator} />}
-        extraData={departures}
-      />
-    </View>
-  )
-};
+}
 
 
 const styles = StyleSheet.create({

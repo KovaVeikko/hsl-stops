@@ -341,7 +341,11 @@ export default class App extends React.Component {
         }
 
         <Header stop={chosenStop}/>
-        <DeparturesList departures={departures.data} loading={departures.loading} />
+        <DeparturesList
+          stopId={stopId}
+          departures={departures.data}
+          loading={departures.loading}
+        />
         <StopsList
           modes={MODES}
           radius={options.radius}
@@ -368,7 +372,7 @@ export default class App extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: Platform.OS === 'ios' ? 20 : 0,
+    marginTop: Platform.OS === 'ios' ? 30 : 0,
     backgroundColor: '#F5FCFF',
   },
   errorContainer: {
