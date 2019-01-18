@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, Text, StatusBar, Platform} from 'react-native';
+import {StyleSheet, View, Text, StatusBar, Platform, AppState} from 'react-native';
 import Permissions from 'react-native-permissions';
 import {getPosition} from './services/location-service';
 import {fetchStops} from './services/stops-service';
@@ -70,8 +70,10 @@ export default class App extends React.Component {
   constructor() {
     super();
     this.state = {
+      appState: AppState.currentState,
       locationPermissionDenied: null,
       loaded: false,
+      intervalId: null,
       options: {
         radius: 3000,
       },
@@ -96,6 +98,16 @@ export default class App extends React.Component {
       networkFailed: null,
       modeFilter: null,
     }
+  };
+
+  handleAppStateChange = (nextAppState) => {
+    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+      this.startUpdateInterval();
+    }
+    if (this.state.appState  === 'active' && nextAppState.match(/inactive|background/)) {
+      this.stopUpdateInterval();
+    }
+    this.setState({appState: nextAppState});
   };
 
   async updatePosition() {
@@ -200,13 +212,13 @@ export default class App extends React.Component {
     }
   };
 
-  async hasLocationPermission() {
+  static async hasLocationPermission() {
     // Response is one of: 'authorized', 'denied', 'restricted', or 'undetermined'
     const permission = await Permissions.check('location');
     return ['authorized'].includes(permission);
   }
 
-  async requestLocationPermission() {
+  static async requestLocationPermission() {
     const permission = await Permissions.request('location');
     return ['authorized'].includes(permission);
   }
@@ -232,9 +244,12 @@ export default class App extends React.Component {
       this.chooseFirstStop();
       this.setState({loaded: true});
     });
+  }
 
+  async startUpdateInterval() {
     // set interval for updating data
-    setInterval(async () => {
+    await this.updateDeparturesList();
+    const intervalId = setInterval(async () => {
       if (this.state.position.failed) {
         await this.updatePosition();
       }
@@ -243,6 +258,11 @@ export default class App extends React.Component {
       }
       await this.updateDeparturesList();
     }, 15 * 1000);
+    this.setState({intervalId})
+  }
+
+  async stopUpdateInterval() {
+    clearInterval(this.state.intervalId);
   }
 
   async componentDidMount() {
@@ -255,6 +275,16 @@ export default class App extends React.Component {
 
     // startup
     await this.startup();
+
+    // listen to app state change
+    AppState.addEventListener('change', this.handleAppStateChange);
+
+    // start update interval
+    await this.startUpdateInterval();
+  }
+
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this.handleAppStateChange);
   }
 
   render() {
