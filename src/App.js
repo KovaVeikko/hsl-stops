@@ -155,13 +155,8 @@ export default class App extends React.Component {
 
   chooseStop = (stopId) => {
     this.setState({stopId, departures: {...this.state.departures, loading: true}}, async () => {
-      try {
-        await this.updateDeparturesList();
-        this.setState({networkFailed: false, departures: {...this.state.departures, loading: false}});
-      }
-      catch (e) {
-        this.setState({networkFailed: true});
-      }
+      await this.updateDeparturesList();
+      this.setState({departures: {...this.state.departures, loading: false}});
     });
   };
 
