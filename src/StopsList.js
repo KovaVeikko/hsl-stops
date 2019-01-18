@@ -1,5 +1,6 @@
-import {FlatList, Image, Text, TouchableHighlight, View, StyleSheet} from "react-native";
-import React from "react";
+import {FlatList, Image, Text, TouchableHighlight, View, StyleSheet} from 'react-native';
+import React from 'react';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import {lightestGrey, lightGrey, white} from './colors';
 
 
@@ -20,7 +21,7 @@ const ModeSelection = ({modes, getModeIcon, toggleModeFilter, chooseStop, modeFi
   )
 };
 
-const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
+const Stop = ({stopData, chooseStop, stopId, getModeIcon, toggleFavorite, favoriteStopIds}) => {
   const {distance, stop} = stopData.node;
   const directions = stop.patterns.map(p => p.headsign);
   const directionsString = [...new Set(directions)].join(', ');
@@ -48,6 +49,9 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon}) => {
           </View>
           <View style={styles.stopBody}>
             <Text style={styles.stopBodyText} numberOfLines={1}>{directionsString}</Text>
+            <TouchableHighlight style={styles.favoriteButton} onPress={() => toggleFavorite(stop.gtfsId)}>
+              <Icon name={favoriteStopIds && favoriteStopIds.includes(stop.gtfsId) ? "star" : "star-o"} size={16} color="#333333" />
+            </TouchableHighlight>
           </View>
         </View>
       </View>
@@ -73,7 +77,7 @@ class StopsList extends React.Component {
   }
 
   render() {
-    const {modes, radius, loading, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates, updateStops, show, showMore} = this.props;
+    const {modes, radius, loading, stops, chooseStop, stopId, getModeIcon, toggleModeFilter, modeFilter, coordinates, updateStops, show, showMore, toggleFavorite, favoriteStopIds} = this.props;
     if (!stops) {
       return null;
     }
@@ -87,7 +91,7 @@ class StopsList extends React.Component {
             //onRefresh={() => updateStops()}
             //refreshing={loading}
             data={data.slice(0, show)}
-            renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon}/>}
+            renderItem={item => <Stop stopData={item.item} chooseStop={chooseStop} stopId={stopId} getModeIcon={getModeIcon} toggleFavorite={toggleFavorite} favoriteStopIds={favoriteStopIds}/>}
             keyExtractor={item => item.node.stop.gtfsId}
             extraData={[stopId, modeFilter, coordinates]}
             ItemSeparatorComponent={() => <View style={styles.stopSeparator} />}
@@ -95,7 +99,7 @@ class StopsList extends React.Component {
             onEndReachedThreshold={0.1}
           />
           : <View style={styles.container}>
-            <Text style={styles.emptyListText}>No stops within {(radius / 1000).toFixed(1)} km range</Text>
+            <Text style={styles.emptyListText}>No stops to show</Text>
           </View>
         }
       </View>
@@ -113,6 +117,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginTop: 'auto',
     marginBottom: 'auto',
+    color: '#333333',
   },
   modeSelection: {
     backgroundColor: white,
@@ -177,11 +182,16 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
   },
   stopBody: {
-    marginRight: 80,
+    flexDirection: 'row',
   },
   stopBodyText: {
     color: '#555555',
-  }
+    marginRight: 80,
+  },
+  favoriteButton: {
+    marginLeft: 'auto',
+    marginRight: 20,
+  },
 });
 
 export default StopsList;

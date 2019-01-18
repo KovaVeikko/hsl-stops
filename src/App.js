@@ -10,6 +10,7 @@ import {getSnapshot, saveSnapshot} from './services/local-storage-service';
 import Header from './Header';
 import Loading from './Loading';
 import LocationDeniedMessage from './LocationDeniedMessage';
+import Navbar from './Navbar';
 
 
 const BUS_ICON = require('../img/bus.png');
@@ -49,6 +50,15 @@ const filterStops = (stops, mode) => {
       })
       : stops;
   }
+};
+
+const findFavoriteStops = (stopData, favoriteIds) => {
+  //return stopData;
+  const favoriteStops = {'ALL': favoriteIds && stopData && stopData['ALL'] ? stopData['ALL'].filter(s => favoriteIds.includes(s.node.stop.gtfsId)) : []};
+  MODES.map(mode => {
+    favoriteStops[mode] = favoriteIds && stopData && stopData[mode] ? stopData[mode].filter(s => favoriteIds.includes(s.node.stop.gtfsId)) : [];
+  });
+  return favoriteStops;
 };
 
 const getStopById = (stopId, stops) => {
@@ -97,6 +107,8 @@ export default class App extends React.Component {
       },
       networkFailed: null,
       modeFilter: null,
+      selectedView: 'near',
+      favoriteStopIds: [],
     }
   };
 
@@ -250,14 +262,41 @@ export default class App extends React.Component {
     return true;
   }
 
+  changeView = (view) => {
+    if (view === 'favorites') {
+      this.setState({selectedView: 'favorites'}, async () => {
+        await saveSnapshot(this.state);
+      });
+    } else {
+      this.setState({selectedView: 'near'}, async () => {
+        await saveSnapshot(this.state);
+      });
+    }
+  };
+
+  toggleFavorite = (stopId) => {
+    const {favoriteStopIds} = this.state;
+    if (favoriteStopIds.includes(stopId)) {
+      this.setState({favoriteStopIds: favoriteStopIds.filter(f => f !== stopId)}, async () => {
+        await saveSnapshot(this.state);
+      });
+    } else {
+      this.setState({favoriteStopIds: [...favoriteStopIds, stopId]}, async () => {
+        await saveSnapshot(this.state);
+      });
+    }
+  };
+
   async startup() {
     // load saved state from the local storage
     const snapshot = await getSnapshot();
     const modeFilter = snapshot ? snapshot.modeFilter : null;
     const coordinates = snapshot ? snapshot.position.coordinates : this.state.position.coordinates;
+    const favoriteStopIds = snapshot && snapshot.favoriteStopIds ? snapshot.favoriteStopIds : this.state.favoriteStopIds;
+    const selectedView = snapshot && snapshot.selectedView ? snapshot.selectedView : this.state.selectedView;
 
     // fetch position and stops list
-    await this.setState({modeFilter, position: {...this.state.position, coordinates}}, async () => {
+    await this.setState({modeFilter, favoriteStopIds, selectedView, position: {...this.state.position, coordinates}}, async () => {
       await this.updatePosition();
       await this.updateStopsList();
       this.chooseFirstStop();
@@ -317,6 +356,8 @@ export default class App extends React.Component {
       modeFilter,
       position,
       networkFailed,
+      selectedView,
+      favoriteStopIds,
     } = this.state;
     if (!loaded) {
       return <Loading/>
@@ -328,6 +369,7 @@ export default class App extends React.Component {
 
     const stopsData = stops.data;
     const chosenStop = getStopById(stopId, stopsData ? stopsData['ALL'] : null);
+    const favoriteStops = findFavoriteStops(stopsData, favoriteStopIds); // TODO: find favorite stops
     return (
       <View style={styles.container}>
         <StatusBar backgroundColor='#455A64'/>
@@ -350,7 +392,7 @@ export default class App extends React.Component {
           modes={MODES}
           radius={options.radius}
           loading={stops.loading}
-          stops={stops.data}
+          stops={selectedView === 'near' ? stops.data : favoriteStops}
           chooseStop={this.chooseStop}
           stopId={stopId}
           getModeIcon={getModeIcon}
@@ -363,7 +405,10 @@ export default class App extends React.Component {
           }}
           show={stops.show}
           showMore={this.showMoreStops}
+          toggleFavorite={this.toggleFavorite}
+          favoriteStopIds={favoriteStopIds}
         />
+        <Navbar selectedView={selectedView} changeView={this.changeView}/>
       </View>
     );
   }
