@@ -178,8 +178,12 @@ export default class App extends React.Component {
   }
 
   chooseStop = (stopId) => {
-    this.setState({stopId, departures: {...this.state.departures, loading: true}}, async () => {
+    this.setState({stopId}, async () => {
+      const spinner = setTimeout(() => {
+        this.setState({departures: {...this.state.departures, loading: true}});
+      }, 1000);
       await this.updateDeparturesList();
+      clearTimeout(spinner);
       this.setState({departures: {...this.state.departures, loading: false}});
     });
   };
