@@ -78,6 +78,13 @@ class DeparturesList extends React.Component {
       return <View style={styles.container}/>;
     }
     const {stoptimesWithoutPatterns} = departures.stop;
+    if (!stoptimesWithoutPatterns || stoptimesWithoutPatterns.length === 0) {
+      return (
+        <View style={styles.container}>
+          <Text style={styles.emptyListText}>No departures to show</Text>
+        </View>
+      );
+    }
     return (
       <View style={styles.container}>
         <FlatList
@@ -157,6 +164,12 @@ const styles = StyleSheet.create({
   },
   departureDayText: {
     color: '#AAAAAA',
+  },
+  emptyListText: {
+    alignSelf: 'center',
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    color: '#333333',
   },
 });
 
