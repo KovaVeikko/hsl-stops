@@ -20,6 +20,8 @@ const METRO_ICON = require('../img/metro.png');
 const METRO_ICON_DISABLED = require('../img/metro_alpha.png');
 const TRAM_ICON = require('../img/tram.png');
 const TRAM_ICON_DISABLED = require('../img/tram_alpha.png');
+export const STAR_ICON = require('../img/star.png');
+export const STAR_ICON_DISABLED = require('../img/star_alpha.png');
 
 
 const MODES = ['BUS', 'TRAM', 'RAIL', 'SUBWAY'];

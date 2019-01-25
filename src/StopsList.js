@@ -1,8 +1,8 @@
 import {FlatList, Image, Text, TouchableHighlight, View, StyleSheet} from 'react-native';
 import React from 'react';
-import Icon from 'react-native-vector-icons/FontAwesome';
-import {lightestGrey, lightGrey, white, yellow} from './colors';
+import {lightestGrey, lightGrey, white} from './colors';
 import Stop from './Stop';
+import {STAR_ICON, STAR_ICON_DISABLED} from "./App";
 
 
 const ModeSelection = ({modes, getModeIcon, toggleModeFilter, chooseStop, modeFilter}) => {
@@ -19,10 +19,9 @@ const ModeSelection = ({modes, getModeIcon, toggleModeFilter, chooseStop, modeFi
         )
       })}
       <TouchableHighlight onPress={() => toggleModeFilter('FAVORITES')}>
-        <Icon
-          name="star-o"
-          size={35}
-          color={modeFilter === "FAVORITES" ? yellow : lightGrey}
+        <Image
+          style={styles.modeSelectionIcon}
+          source={modeFilter === "FAVORITES" ? STAR_ICON : STAR_ICON_DISABLED}
         />
       </TouchableHighlight>
     </View>
