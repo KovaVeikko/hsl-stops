@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet, TouchableHighlight, Image} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {lightGrey, white, yellow} from './colors';
 import Icon from "react-native-vector-icons/FontAwesome";
 
@@ -14,7 +14,7 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon, toggleFavorite, favori
     : {};
   const isFavorite = favoriteStopIds && favoriteStopIds.includes(stop.gtfsId);
   return (
-    <TouchableHighlight onPress={() => chooseStop(stop.gtfsId)}>
+    <TouchableOpacity onPress={() => chooseStop(stop.gtfsId)}>
       <View style={[styles.container, activeStyle]}>
         <View style={styles.mode}>
 
@@ -39,16 +39,16 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon, toggleFavorite, favori
           <Text style={styles.distanceText}>{(distance/1000).toFixed(1)} km</Text>
         </View>
         <View style={styles.star}>
-          <TouchableHighlight onPress={() => toggleFavorite(stop.gtfsId)}>
+          <TouchableOpacity onPress={() => toggleFavorite(stop.gtfsId)}>
             <Icon
               name={isFavorite ? "star" : "star-o"}
               size={20}
               color={isFavorite ? yellow :  lightGrey}
             />
-          </TouchableHighlight>
+          </TouchableOpacity>
         </View>
       </View>
-    </TouchableHighlight>
+    </TouchableOpacity>
   )
 };
 

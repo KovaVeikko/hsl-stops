@@ -1,4 +1,4 @@
-import {FlatList, Image, Text, TouchableHighlight, View, StyleSheet} from 'react-native';
+import {FlatList, Image, Text, TouchableOpacity, View, StyleSheet} from 'react-native';
 import React from 'react';
 import {lightestGrey, lightGrey, white} from './colors';
 import Stop from './Stop';
@@ -10,20 +10,20 @@ const ModeSelection = ({modes, getModeIcon, toggleModeFilter, chooseStop, modeFi
     <View style={styles.modeSelection}>
       {modes.map(mode => {
         return (
-          <TouchableHighlight key={mode} onPress={() => toggleModeFilter(mode)}>
+          <TouchableOpacity key={mode} onPress={() => toggleModeFilter(mode)}>
             <Image
               style={styles.modeSelectionIcon}
               source={getModeIcon(mode, modeFilter !== mode)}
             />
-          </TouchableHighlight>
+          </TouchableOpacity>
         )
       })}
-      <TouchableHighlight onPress={() => toggleModeFilter('FAVORITES')}>
+      <TouchableOpacity onPress={() => toggleModeFilter('FAVORITES')}>
         <Image
           style={styles.modeSelectionIcon}
           source={modeFilter === "FAVORITES" ? STAR_ICON : STAR_ICON_DISABLED}
         />
-      </TouchableHighlight>
+      </TouchableOpacity>
     </View>
   )
 };
