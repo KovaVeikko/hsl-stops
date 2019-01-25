@@ -130,8 +130,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 20,
     justifyContent: 'center',
-    borderRightWidth: 2,
-    borderRightColor: lightestGrey,
   },
   departureDestinationText: {
     fontSize: 16,

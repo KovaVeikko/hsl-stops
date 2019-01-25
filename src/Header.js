@@ -8,7 +8,7 @@ const Header = ({stop}) => {
   const noStopStyle = stop ? {} : {borderBottomWidth: 0};
   return (
     <View style={[styles.container, noStopStyle]}>
-      <Text>{stopName}</Text>
+      <Text style={styles.text}>{stopName}</Text>
     </View>
   );
 };
@@ -22,7 +22,10 @@ const styles = StyleSheet.create({
     backgroundColor: white,
     borderBottomWidth: 1,
     borderBottomColor: lightestGrey,
-  }
+  },
+  text: {
+    fontSize: 18,
+  },
 });
 
 export default Header;

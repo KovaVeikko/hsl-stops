@@ -10,7 +10,7 @@ const Stop = ({stopData, chooseStop, stopId, getModeIcon, toggleFavorite, favori
   const directionsString = [...new Set(directions)].join(', ');
   const modes = [...new Set(stop.patterns.map(p => p.route.mode))];
   const activeStyle = stop.gtfsId === stopId
-    ? styles.stopActive
+    ? styles.active
     : {};
   const isFavorite = favoriteStopIds && favoriteStopIds.includes(stop.gtfsId);
   return (
@@ -58,6 +58,9 @@ const styles = StyleSheet.create({
     backgroundColor: white,
     padding: 10,
     flexDirection: 'row',
+  },
+  active: {
+    backgroundColor: lightGrey,
   },
   mode: {
     width: 25,
