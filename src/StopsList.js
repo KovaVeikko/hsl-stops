@@ -117,15 +117,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
-  stop: {
-    width: '100%',
-    backgroundColor: white,
-    padding: 10,
-    flexDirection: 'row',
-  },
-  stopActive: {
-    backgroundColor: lightestGrey,
-  },
   stopSeparator: {
     height: 1,
     width: '100%',

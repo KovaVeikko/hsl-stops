@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import {lightGrey, white, yellow} from './colors';
+import {lighterGrey, lightGrey, white, yellow} from './colors';
 import Icon from "react-native-vector-icons/FontAwesome";
 
 
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   active: {
-    backgroundColor: lightGrey,
+    backgroundColor: lighterGrey,
   },
   mode: {
     width: 25,

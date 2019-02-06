@@ -27,20 +27,20 @@ const Departure = ({departure}) => {
         </Text>
       </View>
       <View style={styles.departureTimeContainer}>
-        <View style={styles.departureRealTimeIndicator}>
-          {departure.realtime && departure.realtimeState === "UPDATED" &&
-            <Image
-              style={styles.realtimeIcon}
-              source={REALTIME_ICON}
-            />
-          }
-        </View>
         <View style={styles.departureTime}>
           <Text style={styles.departureTimeText}>
             {minutes > 20 ? departureTime.format('H:mm') : minutes}
           </Text>
           {day &&
             <Text style={styles.departureDayText}>{day}</Text>
+          }
+        </View>
+        <View style={styles.departureRealTimeIndicator}>
+          {departure.realtime && departure.realtimeState === "UPDATED" &&
+          <Image
+            style={styles.realtimeIcon}
+            source={REALTIME_ICON}
+          />
           }
         </View>
       </View>
@@ -145,11 +145,12 @@ const styles = StyleSheet.create({
   departureTimeContainer: {
     flexDirection: 'row',
     marginLeft: 'auto',
+    marginRight: 20,
     width: 65,
   },
   departureRealTimeIndicator: {
     width: 10,
-    marginRight: 3,
+    marginLeft: 3,
   },
   realtimeIcon: {
     width: 10,
@@ -157,10 +158,12 @@ const styles = StyleSheet.create({
   },
   departureTime: {
     justifyContent: 'center',
+    width: '100%',
   },
   departureTimeText: {
     fontSize: 20,
     color: '#333333',
+    textAlign: 'right',
   },
   departureDayText: {
     color: '#AAAAAA',

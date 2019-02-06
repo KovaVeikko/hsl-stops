@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: white,
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
     borderBottomColor: lightestGrey,
   },
   text: {
