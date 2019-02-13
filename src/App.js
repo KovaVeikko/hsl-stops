@@ -78,7 +78,7 @@ export default class App extends React.Component {
       loaded: false,
       intervalId: null,
       options: {
-        radius: 3000,
+        radius: 10000,
       },
       stops: {
         loading: false,
