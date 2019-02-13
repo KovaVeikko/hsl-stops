@@ -72,6 +72,7 @@ export default class App extends React.Component {
   constructor() {
     super();
     this.state = {
+      failureMessage: null,
       appState: AppState.currentState,
       locationPermissionDenied: null,
       loaded: false,
@@ -277,19 +278,23 @@ export default class App extends React.Component {
 
   async startup() {
     // load saved state from the local storage
-    const snapshot = await getSnapshot();
-    const modeFilter = snapshot ? snapshot.modeFilter : null;
-    const coordinates = snapshot ? snapshot.position.coordinates : this.state.position.coordinates;
-    const favoriteStopIds = snapshot && snapshot.favoriteStopIds ? snapshot.favoriteStopIds : this.state.favoriteStopIds;
-    const selectedView = snapshot && snapshot.selectedView ? snapshot.selectedView : this.state.selectedView;
+    try {
+      const snapshot = await getSnapshot();
+      const modeFilter = snapshot ? snapshot.modeFilter : null;
+      const coordinates = snapshot ? snapshot.position.coordinates : this.state.position.coordinates;
+      const favoriteStopIds = snapshot && snapshot.favoriteStopIds ? snapshot.favoriteStopIds : this.state.favoriteStopIds;
+      const selectedView = snapshot && snapshot.selectedView ? snapshot.selectedView : this.state.selectedView;
 
-    // fetch position and stops list
-    await this.setState({modeFilter, favoriteStopIds, selectedView, position: {...this.state.position, coordinates}}, async () => {
-      await this.updatePosition();
-      await this.updateStopsList();
-      this.chooseFirstStop();
-      this.setState({loaded: true});
-    });
+      // fetch position and stops list
+      await this.setState({modeFilter, favoriteStopIds, selectedView, position: {...this.state.position, coordinates}}, async () => {
+        await this.updatePosition();
+        await this.updateStopsList();
+        this.chooseFirstStop();
+        this.setState({loaded: true});
+      });
+    } catch (e) {
+      this.setState({failureMessage: e.message})
+    }
   }
 
   async startUpdateInterval() {
@@ -335,6 +340,7 @@ export default class App extends React.Component {
 
   render() {
     const {
+      failureMessage,
       loaded,
       locationPermissionDenied,
       stops,
@@ -345,6 +351,11 @@ export default class App extends React.Component {
       networkFailed,
       favoriteStopIds,
     } = this.state;
+
+    if (failureMessage) {
+      return <ErrorMessage message={failureMessage}/>
+    }
+
     if (!loaded) {
       return <Loading/>
     }
