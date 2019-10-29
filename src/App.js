@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet, View, Text, StatusBar, Platform, AppState} from 'react-native';
-import Permissions from 'react-native-permissions';
+import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import {getPosition} from './services/location-service';
 import {fetchStops} from './services/stops-service';
 import {fetchDepartures} from './services/departures-service';
@@ -66,6 +66,11 @@ const ErrorMessage = ({message}) => {
     </View>
   )
 };
+
+const LOCATION_PERMISSION = Platform.select({
+  ios: PERMISSIONS.IOS.LOCATION_ALWAYS,
+  android: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
+});
 
 export default class App extends React.Component {
 
@@ -240,13 +245,13 @@ export default class App extends React.Component {
 
   async hasLocationPermission() {
     // Response is one of: 'authorized', 'denied', 'restricted', or 'undetermined'
-    const permission = await Permissions.check('location');
-    return ['authorized'].includes(permission);
+    const permission = await check(LOCATION_PERMISSION);
+    return [RESULTS.GRANTED].includes(permission);
   }
 
   async requestLocationPermission() {
-    const permission = await Permissions.request('location');
-    return ['authorized'].includes(permission);
+    const permission = await request(LOCATION_PERMISSION);
+    return [RESULTS.GRANTED].includes(permission);
   }
 
   async getLocationPermission() {
